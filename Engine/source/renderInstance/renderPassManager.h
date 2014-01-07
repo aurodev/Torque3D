@@ -362,6 +362,7 @@ struct MeshRenderInst : public RenderInst
    GFXTextureObject *reflectTex;
    GFXTextureObject *miscTex;
    GFXCubemap   *cubemap;
+   F32 mMaterialDamage;
 
    void clear();
 };

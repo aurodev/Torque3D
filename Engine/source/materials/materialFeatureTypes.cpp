@@ -40,6 +40,7 @@ ImplementFeatureType( MFT_AlphaTest, MFG_Texture, 7.0f, true );
 ImplementFeatureType( MFT_SpecularMap, MFG_Texture, 8.0f, true );
 ImplementFeatureType( MFT_NormalMap, MFG_Texture, 9.0f, true );
 ImplementFeatureType( MFT_DetailNormalMap, MFG_Texture, 10.0f, true );
+ImplementFeatureType( MFT_DetailAlpha, MFG_Texture, 1.0f, true );
 
 ImplementFeatureType( MFT_RTLighting, MFG_Lighting, 2.0f, true );
 ImplementFeatureType( MFT_SubSurface, MFG_Lighting, 3.0f, true );

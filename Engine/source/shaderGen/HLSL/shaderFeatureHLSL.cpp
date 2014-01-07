@@ -1541,6 +1541,8 @@ void DetailFeatHLSL::processPix( Vector<ShaderComponent*> &componentList,
    // Get the detail texture coord.
    Var *inTex = getInTexCoord( "detCoord", "float2", true, componentList );
 
+   MultiLine * meta = new MultiLine;
+
    // create texture var
    Var *detailMap = new Var;
    detailMap->setType( "sampler2D" );
@@ -1548,6 +1550,15 @@ void DetailFeatHLSL::processPix( Vector<ShaderComponent*> &componentList,
    detailMap->uniform = true;
    detailMap->sampler = true;
    detailMap->constNum = Var::getTexUnitNum();     // used as texture unit num here
+
+   Var *detailAlpha  = new Var( "detailAlpha", "float" );
+   detailAlpha->uniform = true;
+   detailAlpha->constSortPos = cspPrimitive;
+
+   Var *detailMapBlend = new Var;
+   detailMapBlend->setType( "float4" );
+   detailMapBlend->setName( "detailMapBlend" );
+   LangElement *detailMapBlendDecl = new DecOp( detailMapBlend );
 
    // We're doing the standard greyscale detail map
    // technique which can darken and lighten the 
@@ -1557,7 +1568,10 @@ void DetailFeatHLSL::processPix( Vector<ShaderComponent*> &componentList,
    // and a simple multiplication with the detail map.
 
    LangElement *statement = new GenOp( "( tex2D(@, @) * 2.0 ) - 1.0", detailMap, inTex );
-   output = new GenOp( "   @;\r\n", assignColor( statement, Material::Add ) );
+   meta->addStatement(new GenOp( "   @ = @;\r\n",detailMapBlendDecl, statement));
+   meta->addStatement(new GenOp( "   @.a = @;\r\n", detailMapBlend, detailAlpha));
+   meta->addStatement( new GenOp( "   @;\r\n", assignColor( detailMapBlend, Material::AddAlpha ) ));
+   output = meta;
 }
 
 ShaderFeature::Resources DetailFeatHLSL::getResources( const MaterialFeatureData &fd )

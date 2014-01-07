@@ -50,7 +50,8 @@ public:
    GFXShaderConstHandle* mParallaxInfoSC;
    GFXShaderConstHandle* mFogDataSC;
    GFXShaderConstHandle* mFogColorSC;   
-   GFXShaderConstHandle* mDetailScaleSC;
+   GFXShaderConstHandle* mDetailScaleSC; 
+   GFXShaderConstHandle* mDetailAlphaSC;
    GFXShaderConstHandle* mVisiblitySC;
    GFXShaderConstHandle* mColorMultiplySC;
    GFXShaderConstHandle* mAlphaTestValueSC;

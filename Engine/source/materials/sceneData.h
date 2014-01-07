@@ -82,6 +82,7 @@ struct SceneData
    const MatrixF *objTrans;
    GFXCubemap *cubemap;
    F32 visibility;
+   F32 mMaterialDamage;
 
    /// Enables wireframe rendering for the object.
    bool wireframe;
@@ -97,6 +98,7 @@ struct SceneData
       dMemset( this, 0, sizeof( SceneData ) );
       objTrans = &MatrixF::Identity;
       visibility = 1.0f;
+	  mMaterialDamage = 1.0f;
    }
 
    /// Initializes the data with the scene state setting
@@ -110,6 +112,7 @@ struct SceneData
       objTrans = &MatrixF::Identity;
       visibility = 1.0f;
       ambientLightColor = state->getAmbientLightColor();
+	  mMaterialDamage = 1.0f;
    }
 
    inline void setFogParams( const FogData &data )

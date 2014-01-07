@@ -58,6 +58,7 @@ void _initShaderGenHLSL( ShaderGen *shaderGen )
    FEATUREMGR->registerFeature( MFT_Parallax, new ParallaxFeatHLSL );
    FEATUREMGR->registerFeature( MFT_NormalMap, new BumpFeatHLSL );
    FEATUREMGR->registerFeature( MFT_DetailNormalMap, new NamedFeatureHLSL( "Detail Normal Map" ) );
+   FEATUREMGR->registerFeature( MFT_DetailAlpha, new NamedFeatureHLSL( "Detail Strength" ) );
    FEATUREMGR->registerFeature( MFT_DetailMap, new DetailFeatHLSL );
    FEATUREMGR->registerFeature( MFT_CubeMap, new ReflectCubeFeatHLSL );
    FEATUREMGR->registerFeature( MFT_PixSpecular, new PixelSpecularHLSL );
