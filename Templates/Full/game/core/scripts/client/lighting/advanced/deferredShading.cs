@@ -76,9 +76,15 @@ function toggleColorBufferViz( %enable )
       AL_ColorBufferVisualize.toggle();
    }
    else if ( %enable )
+   {
+      AL_DeferredShading.disable();
       AL_ColorBufferVisualize.enable();
+   }
    else if ( !%enable )
-      AL_ColorBufferVisualize.disable();    
+   {
+      AL_ColorBufferVisualize.disable();
+      AL_DeferredShading.enable();
+   }   
 }
 
 new ShaderData( AL_SpecMapShader )

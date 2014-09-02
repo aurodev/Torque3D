@@ -27,5 +27,5 @@
 float4 main( PFXVertToPix IN, 
              uniform sampler2D colorBufferTex : register(S0) ) : COLOR0
 {     
-   return tex2D( colorBufferTex, IN.uv0 );   
+   return float4(tex2D( colorBufferTex, IN.uv0 ).rgb, 1.0);   
 }
