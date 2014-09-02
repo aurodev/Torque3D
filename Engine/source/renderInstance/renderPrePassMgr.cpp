@@ -369,7 +369,7 @@ void RenderPrePassMgr::render( SceneRenderState *state )
       setupSGData( ri, sgData );
 
       Vector< MainSortElem >::const_iterator meshItr, endOfBatchItr = itr;
-
+      
       while ( mat->setupPass( state, sgData ) )
       {
          meshItr = itr;
@@ -386,15 +386,28 @@ void RenderPrePassMgr::render( SceneRenderState *state )
             if ( newPassNeeded( ri, passRI ) )
                break;
 
-            // Set up SG data for this instance.
-            setupSGData( passRI, sgData );
+			// Set up SG data for this instance.
+			setupSGData(passRI, sgData);
+            mat->setSceneInfo(state, sgData);
 
             matrixSet.setWorld(*passRI->objectToWorld);
             matrixSet.setView(*passRI->worldToCamera);
             matrixSet.setProjection(*passRI->projection);
+			mat->setTransforms(matrixSet, state);            
 
-            mat->setSceneInfo(state, sgData);
-            mat->setTransforms(matrixSet, state);
+			// If we're instanced then don't render yet.
+			if (mat->isInstanced())
+			{
+				// Let the material increment the instance buffer, but
+				// break the batch if it runs out of room for more.
+				if (!mat->stepInstance())
+				{
+					meshItr++;
+					break;
+				}
+
+				continue;
+			}
 
             bool dirty = false;
 
@@ -423,20 +436,6 @@ void RenderPrePassMgr::render( SceneRenderState *state )
 
             if ( dirty )
                mat->setTextureStages( state, sgData );
-
-            // If we're instanced then don't render yet.
-            if ( mat->isInstanced() )
-            {
-               // Let the material increment the instance buffer, but
-               // break the batch if it runs out of room for more.
-               if ( !mat->stepInstance() )
-               {
-                  meshItr++;
-                  break;
-               }
-
-               continue;
-            }
 
             // Setup the vertex and index buffers.
             mat->setBuffers( passRI->vertBuff, passRI->primBuff );
