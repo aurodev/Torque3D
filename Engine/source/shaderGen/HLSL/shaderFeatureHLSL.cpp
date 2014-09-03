@@ -868,12 +868,22 @@ void DiffuseMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
       diffColor->setType( "float4" );
       diffColor->setName( "diffuseColor" );
       LangElement *colorDecl = new DecOp( diffColor );
-   
-      meta->addStatement(  new GenOp( "   @ = tex2DLinear(@, @);\r\n", 
+      
+      if (  fd.features[MFT_Imposter] )
+      {
+          meta->addStatement(  new GenOp( "   @ = tex2D(@, @);\r\n", 
                            colorDecl, 
                            diffuseMap, 
                            inTex ) );
-      
+      }
+      else
+      {
+          meta->addStatement(  new GenOp( "   @ = tex2DLinear(@, @);\r\n", 
+                           colorDecl, 
+                           diffuseMap, 
+                           inTex ) );
+      }
+
       meta->addStatement( new GenOp( "   @;\r\n", assignColor( diffColor, Material::Mul ) ) );
       output = meta;
    }
@@ -961,16 +971,28 @@ void DiffuseMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
       }
       else
       {
-         meta->addStatement(new GenOp( "   @ = tex2DLinear(@, @);\r\n", 
-            new DecOp(diffColor), diffuseMap, inTex));
+          if (  fd.features[MFT_Imposter] )
+              meta->addStatement(new GenOp( "   @ = tex2D(@, @);\r\n",
+                    new DecOp(diffColor), diffuseMap, inTex)); 
+          else
+              meta->addStatement(new GenOp( "   @ = tex2DLinear(@, @);\r\n",
+                    new DecOp(diffColor), diffuseMap, inTex)); 
       }
 
       meta->addStatement(new GenOp( "   @;\r\n", assignColor(diffColor, Material::Mul)));
    }
    else
    {
-      LangElement *statement = new GenOp( "tex2DLinear(@, @)", diffuseMap, inTex );
-      output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul ) );
+       if (  fd.features[MFT_Imposter] )
+       {
+           LangElement *statement = new GenOp( "tex2D(@, @)", diffuseMap, inTex );
+           output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul ) );
+       }
+       else
+       {
+           LangElement *statement = new GenOp( "tex2DLinear(@, @)", diffuseMap, inTex );
+           output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul ) );
+       }
    }
    
 }
