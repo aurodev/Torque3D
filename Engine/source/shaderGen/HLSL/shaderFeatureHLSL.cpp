@@ -826,6 +826,12 @@ Var* ShaderFeatureHLSL::addOutDetailTexCoord(   Vector<ShaderComponent*> &compon
 // Base Texture
 //****************************************************************************
 
+DiffuseMapFeatHLSL::DiffuseMapFeatHLSL()
+   : mTorqueDep( "shaders/common/torque.hlsl" )
+{
+   addDependency( &mTorqueDep );
+}
+
 void DiffuseMapFeatHLSL::processVert( Vector<ShaderComponent*> &componentList, 
                                        const MaterialFeatureData &fd )
 {
