@@ -56,6 +56,12 @@ MODULE_BEGIN( TerrainFeatHLSL )
 MODULE_END;
 
 
+TerrainFeatHLSL::TerrainFeatHLSL()
+   : mTorqueDep( "shaders/common/torque.hlsl" )
+{
+   addDependency( &mTorqueDep );
+}
+
 Var* TerrainFeatHLSL::_getUniformVar( const char *name, const char *type, ConstantSortPosition csp )
 {
    Var *theVar = (Var*)LangElement::find( name );
