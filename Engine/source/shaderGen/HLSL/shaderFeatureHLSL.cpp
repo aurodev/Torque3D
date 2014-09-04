@@ -2381,7 +2381,9 @@ void AlphaTestHLSL::processPix(  Vector<ShaderComponent*> &componentList,
    }
 
    // If we don't have a color var then we cannot do an alpha test.
-   Var *color = (Var*)LangElement::find( "col1" );
+   Var *color = (Var*)LangElement::find( "col" );
+   if (!color)
+       color = (Var*)LangElement::find( "col1" );
    if ( !color )
    {
       output = NULL;
