@@ -241,7 +241,7 @@ void DeferredSpecMapHLSL::processPix( Vector<ShaderComponent*> &componentList, c
    specularMap->uniform = true;
    specularMap->sampler = true;
    specularMap->constNum = Var::getTexUnitNum();
-   LangElement *texOp = new GenOp( "tex2DLinear(@, @)", specularMap, texCoord );
+   LangElement *texOp = new GenOp( "tex2D(@, @)", specularMap, texCoord );
 
    output = new GenOp( "   @.a = dot(tex2D(@, @).rgb, float3(0.3, 0.59, 0.11));\r\n", color, specularMap, texCoord );
 }
@@ -291,8 +291,18 @@ void DeferredSpecColorHLSL::processPix( Vector<ShaderComponent*> &componentList,
       specularColor->uniform = true;
       specularColor->constSortPos = cspPotentialPrimitive;
    }
+ 
+   Var *color = (Var*)LangElement::find(getOutputTargetVarName(ShaderFeature::RenderTarget1));
+   if (!color)
+   {
+           // create color var
+           color = new Var;
+           color->setType("fragout");
+           color->setName(getOutputTargetVarName(ShaderFeature::RenderTarget1));
+           color->setStructName("OUT");
+   }
    
-   output = new GenOp( "   @;\r\n", assignColor( specularColor, Material::None, NULL,  ShaderFeature::RenderTarget1 ) );
+   output = new GenOp("   @.a = @.r;\r\n", color, specularColor);
 }
 
 // Black -> Alpha of Color Buffer (representing no specular)

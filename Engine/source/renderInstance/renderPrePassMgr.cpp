@@ -597,7 +597,14 @@ void ProcessedPrePassMaterial::_determineFeatures( U32 stageNum,
 
       newFeatures.addFeature( MFT_DeferredSpecStrength );
    } else {
-      newFeatures.addFeature( MFT_DeferredEmptySpec ); 
+       if (fd.features[MFT_PixSpecular])
+       {
+           newFeatures.addFeature(MFT_DeferredSpecColor);
+       }
+       else
+       {
+           newFeatures.addFeature(MFT_DeferredEmptySpec);
+       }
       if ( mMaterial->mSpecular[stageNum] )
       {
          newFeatures.addFeature( MFT_DeferredSpecStrength );

@@ -1078,7 +1078,7 @@ void OverlayTexFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
    diffuseMap->sampler = true;
    diffuseMap->constNum = Var::getTexUnitNum();     // used as texture unit num here
 
-   LangElement *statement = new GenOp( "tex2DLinear(@, @)", diffuseMap, inTex );
+   LangElement *statement = new GenOp( "tex2D(@, @)", diffuseMap, inTex );
    output = new GenOp( "   @;\r\n", assignColor( statement, Material::LerpAlpha ) );
 }
 
@@ -1584,7 +1584,7 @@ void DetailFeatHLSL::processPix( Vector<ShaderComponent*> &componentList,
    // TODO: We could add a feature to toggle between this
    // and a simple multiplication with the detail map.
 
-   LangElement *statement = new GenOp( "( tex2DLinear(@, @) * 2.0 ) - 1.0", detailMap, inTex );
+   LangElement *statement = new GenOp( "( tex2D(@, @) * 2.0 ) - 1.0", detailMap, inTex );
    if (  fd.features[MFT_DeferredDiffuseMap])
        output = new GenOp( "   @;\r\n", assignColor( statement, Material::Add, NULL, ShaderFeature::RenderTarget1 ) );
    else
@@ -1790,7 +1790,7 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
 
          glossColor = color;
          
-         meta->addStatement( new GenOp( "   @ = tex2DLinear( @, @ );\r\n", colorDecl, newMap, inTex ) );
+         meta->addStatement( new GenOp( "   @ = tex2D( @, @ );\r\n", colorDecl, newMap, inTex ) );
       }
    }
    else
