@@ -302,7 +302,7 @@ void DeferredSpecColorHLSL::processPix( Vector<ShaderComponent*> &componentList,
            color->setStructName("OUT");
    }
    
-   output = new GenOp("   @.a = @.r;\r\n", color, specularColor);
+   output = new GenOp("   @.a = dot(@.rgb, float3(0.3, 0.59, 0.11));\r\n", color, specularColor);
 }
 
 // Black -> Alpha of Color Buffer (representing no specular)
