@@ -1113,9 +1113,15 @@ void DiffuseFeatureHLSL::processPix(   Vector<ShaderComponent*> &componentList,
    diffuseMaterialColor->setName( "diffuseMaterialColor" );
    diffuseMaterialColor->uniform = true;
    diffuseMaterialColor->constSortPos = cspPotentialPrimitive;
+   
+   ShaderFeature::OutputTarget targ = ShaderFeature::DefaultTarget;
+
+   Var *col = (Var*)LangElement::find( "col1" );
+   if (col)
+      targ = ShaderFeature::RenderTarget1;
 
    MultiLine * meta = new MultiLine;
-   meta->addStatement( new GenOp( "   @;\r\n", assignColor( diffuseMaterialColor, Material::Mul ) ) );
+   meta->addStatement( new GenOp( "   @;\r\n", assignColor( diffuseMaterialColor, Material::Mul, NULL, targ ) ) );
    output = meta;
 }
 
