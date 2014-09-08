@@ -1679,7 +1679,7 @@ void ReflectCubeFeatHLSL::processVert( Vector<ShaderComponent*> &componentList,
        !fd.features[MFT_NormalMap] )
    {
       if( fd.materialFeatures[MFT_DiffuseMap] ||
-          fd.features[MFT_DeferredDiffuseMap] ||
+          fd.materialFeatures[MFT_DeferredDiffuseMap] ||
           fd.materialFeatures[MFT_NormalMap] )
       {
          // find incoming texture var
@@ -1775,7 +1775,7 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
    {
       if( fd.materialFeatures[MFT_DiffuseMap] ||
           fd.materialFeatures[MFT_NormalMap] ||
-          fd.features[MFT_DeferredDiffuseMap] )
+          fd.materialFeatures[MFT_DeferredDiffuseMap] )
       {
          // grab connector texcoord register
          Var *inTex = getInTexCoord( "texCoord", "float2", true, componentList );
@@ -1801,18 +1801,31 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
    }
    else
    {
-      if (fd.features[MFT_DeferredDiffuseMap])
-      {
-        glossColor = (Var*)LangElement::find( "col1" );
-        if (!fd.features[MFT_DeferredSpecMap])
-        {
-            meta->addStatement( new GenOp( "   @.a = 1.0;\r\n", glossColor) );
-        }
-      }
-      else
-      glossColor = (Var*) LangElement::find( "diffuseColor" );
-      if( !glossColor )
-         glossColor = (Var*) LangElement::find( "bumpNormal" );
+       
+       if (fd.features[MFT_DeferredDiffuseMap])
+       {
+           if (!glossColor)
+               glossColor = (Var*)LangElement::find( "col1" );
+           if (!fd.features[MFT_DeferredSpecStrength])
+           {
+               meta->addStatement( new GenOp( "   @.a = 0.5;\r\n", glossColor) );
+           } else {
+               Var *specStrength = (Var*)LangElement::find( "specularStrength" );
+               if ( !specStrength )
+               {
+                   specStrength = new Var;
+                   specStrength->setType( "float" );
+                   specStrength->setName( "specularStrength" );
+                   specStrength->uniform = true;
+                   specStrength->constSortPos = cspPotentialPrimitive;
+               }
+               meta->addStatement( new GenOp( "   @.a *= @/5;\r\n", glossColor, specStrength ) );
+           }
+       }
+       else
+           glossColor = (Var*) LangElement::find( "diffuseColor" );
+       if( !glossColor )
+           glossColor = (Var*) LangElement::find( "bumpNormal" );
    }
 
    // grab connector texcoord register
@@ -1839,7 +1852,22 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
       if ( fd.materialFeatures[MFT_RTLighting] )
       attn =(Var*)LangElement::find("d_NL_Att");
 
-   LangElement *texCube = new GenOp( "texCUBE( @, @ )", cubeMap, reflectVec );
+   // Determine roughness
+   Var *specPower = (Var*)LangElement::find( "specularPower" );
+   if ( !specPower )
+   {
+      specPower = new Var;
+      specPower->setType( "float" );
+      specPower->setName( "specularPower" );
+      specPower->uniform = true;
+      specPower->constSortPos = cspPotentialPrimitive;
+   }
+
+   // Cube LOD level = (1.0 - Roughness) * 8
+   // mip_levle =  min((1.0 - u_glossiness)*11.0 + 1.0, 8.0)
+   //LangElement *texCube = new GenOp( "texCUBElod( @, float4(@, min((1.0 - (@ / 128.0)) * 11.0 + 1.0, 8.0)) )", cubeMap, reflectVec, specPower );
+   LangElement *texCube = new GenOp( "texCUBElod( @, float4(@, (@ / 128.0) * 8) )", cubeMap, reflectVec, specPower );
+
    LangElement *lerpVal = NULL;
    Material::BlendOp blendOp = Material::LerpAlpha;
 
@@ -1863,7 +1891,7 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
    if (fd.features[MFT_DeferredDiffuseMap])
        meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal, ShaderFeature::RenderTarget1 ) ) );
    else
-   meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal ) ) );         
+       meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal ) ) );         
    output = meta;
 }
 
