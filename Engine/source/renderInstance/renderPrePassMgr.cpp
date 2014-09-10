@@ -617,6 +617,10 @@ void ProcessedPrePassMaterial::_determineFeatures( U32 stageNum,
    {
       newFeatures.addFeature( MFT_DeferredTranslucencyMap );
    }
+   else
+   {
+      newFeatures.addFeature( MFT_DeferredTranslucencyEmpty );
+   }
 
    // Deferred Shading : Material Info Flags
    newFeatures.addFeature( MFT_DeferredMatInfoFlags );

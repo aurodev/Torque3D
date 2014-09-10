@@ -1800,8 +1800,7 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
       }
    }
    else
-   {
-       
+   {       
        if (fd.features[MFT_DeferredDiffuseMap])
        {
            if (!glossColor)
@@ -1819,7 +1818,10 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
                    specStrength->uniform = true;
                    specStrength->constSortPos = cspPotentialPrimitive;
                }
-               meta->addStatement( new GenOp( "   @.a *= @/5;\r\n", glossColor, specStrength ) );
+               if (fd.features[MFT_DeferredSpecMap]||fd.features[MFT_SpecularMap])
+                   meta->addStatement( new GenOp( "   @.a *= @/5;\r\n", glossColor, specStrength ) );
+               else
+                   meta->addStatement( new GenOp( "   @.a = @/5;\r\n", glossColor, specStrength ) );
            }
        }
        else
