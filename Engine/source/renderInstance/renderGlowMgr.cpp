@@ -78,16 +78,18 @@ void RenderGlowMgr::GlowMaterialHook::_overrideFeatures( ProcessedMaterial *mat,
    // the glow materials.
    fd.features.removeFeature( MFT_Fog );
    fd.features.removeFeature( MFT_HDROut );
+   fd.features.addFeature( MFT_Imposter );
 }
 
 RenderGlowMgr::RenderGlowMgr()
    : RenderTexTargetBinManager(  RenderPassManager::RIT_Mesh, 
                                  1.0f, 
                                  1.0f,
-                                 GFXFormatR8G8B8A8,
+                                 GFXFormatR16G16B16A16F,
                                  Point2I( 512, 512 ) )
 {
    notifyType( RenderPassManager::RIT_Decal );
+   notifyType( RenderPassManager::RIT_DecalRoad );
    notifyType( RenderPassManager::RIT_Translucent );
 
    mNamedTarget.registerWithName( "glowbuffer" );
