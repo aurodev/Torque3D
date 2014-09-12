@@ -46,7 +46,6 @@ singleton PostEffect( AL_DeferredShading )
    target = "$backBuffer";
    renderPriority = 10000;
    allowReflectPass = true;
-   targetFormat = "GFXFormatR8G8B8A8";
 };
 
 // Debug Shaders.
