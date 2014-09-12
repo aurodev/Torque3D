@@ -208,8 +208,10 @@ function HDRPostFX::setShaderConsts( %this )
    %combinePass.setShaderConst( "$g_fEnableBlueShift", $HDRPostFX::enableBlueShift );   
    %combinePass.setShaderConst( "$g_fBlueShiftColor", $HDRPostFX::blueShiftColor );   
    
-   %clampedGamma  = mClamp( $pref::Video::Gamma, 0.001, 2.2);
-   %combinePass.setShaderConst( "$g_fOneOverGamma",  1 / %clampedGamma );       
+   %clampedGamma  = mClamp( $pref::Video::Gamma, 2.0, 2.5);
+   %combinePass.setShaderConst( "$g_fOneOverGamma",  1 / %clampedGamma );
+   %combinePass.setShaderConst( "$Brightness", $pref::Video::Brightness );
+   %combinePass.setShaderConst( "$Contrast", $pref::Video::Contrast );
 
    %whiteCutoff = ( $HDRPostFX::whiteCutoff * $HDRPostFX::whiteCutoff ) *
                   ( $HDRPostFX::whiteCutoff * $HDRPostFX::whiteCutoff );                  

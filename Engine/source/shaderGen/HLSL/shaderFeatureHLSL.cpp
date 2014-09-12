@@ -878,7 +878,7 @@ void DiffuseMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
       }
       else
       {
-          meta->addStatement(  new GenOp( "   @ = tex2DLinear(@, @);\r\n", 
+          meta->addStatement(  new GenOp( "   @ = tex2D(@, @);\r\n", 
                            colorDecl, 
                            diffuseMap, 
                            inTex ) );
@@ -975,7 +975,7 @@ void DiffuseMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
               meta->addStatement(new GenOp( "   @ = tex2D(@, @);\r\n",
                     new DecOp(diffColor), diffuseMap, inTex)); 
           else
-              meta->addStatement(new GenOp( "   @ = tex2DLinear(@, @);\r\n",
+              meta->addStatement(new GenOp( "   @ = tex2D(@, @);\r\n",
                     new DecOp(diffColor), diffuseMap, inTex)); 
       }
 
@@ -990,7 +990,7 @@ void DiffuseMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
        }
        else
        {
-           LangElement *statement = new GenOp( "tex2DLinear(@, @)", diffuseMap, inTex );
+           LangElement *statement = new GenOp( "tex2D(@, @)", diffuseMap, inTex );
            output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul ) );
        }
    }
