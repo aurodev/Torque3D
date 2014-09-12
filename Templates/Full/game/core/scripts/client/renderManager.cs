@@ -33,7 +33,7 @@ function initRenderManager()
    {
       enabled = "false";
       
-      format = "GFXFormatR16G16B16A16F";
+      format = "GFXFormatR16G16B16A16";
       depthFormat = "GFXFormatD24S8";
       aaLevel = 0; // -1 = match backbuffer
       
@@ -108,5 +108,5 @@ singleton PostEffect( AL_FormatCopy )
    
    texture[0] = "$inTex";
    target = "$backbuffer";
-   targetFormat = "GFXFormatR8G8B8A8";
+   targetFormat = "GFXFormatR16G16B16A16";
 };
