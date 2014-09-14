@@ -1797,9 +1797,10 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
                    specStrength->constSortPos = cspPotentialPrimitive;
                }
                if (fd.features[MFT_DeferredSpecMap]||fd.features[MFT_SpecularMap])
-                   meta->addStatement( new GenOp( "   @.a *= @/5;\r\n", glossColor, specStrength ) );
+                   meta->addStatement( new GenOp( "   @.a *= @;\r\n", glossColor, specStrength ) );
                else
-                   meta->addStatement( new GenOp( "   @.a = @/5;\r\n", glossColor, specStrength ) );
+                   meta->addStatement( new GenOp( "   @.a = @;\r\n", glossColor, specStrength ) );
+               meta->addStatement( new GenOp( "   @ = saturate(@);\r\n", glossColor, glossColor));
            }
        }
        else
