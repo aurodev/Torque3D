@@ -572,6 +572,8 @@ void ProcessedPrePassMaterial::_determineFeatures( U32 stageNum,
    newFeatures.addFeature( MFT_EyeSpaceDepthOut );
    newFeatures.addFeature( MFT_PrePassConditioner );
 
+#ifndef TORQUE_DEDICATED
+
    // Deferred Shading : Diffuse
    if (mStages[stageNum].getTex( MFT_DiffuseMap ))
    {
@@ -622,8 +624,6 @@ void ProcessedPrePassMaterial::_determineFeatures( U32 stageNum,
    // Deferred Shading : Material Info Flags
    newFeatures.addFeature( MFT_DeferredMatInfoFlags );
 
-#ifndef TORQUE_DEDICATED
-
    for ( U32 i=0; i < fd.features.getCount(); i++ )
    {
       const FeatureType &type = fd.features.getAt( i );
@@ -652,7 +652,10 @@ void ProcessedPrePassMaterial::_determineFeatures( U32 stageNum,
                   type == MFT_InterlacedPrePass ||
                   type == MFT_Visibility ||
                   type == MFT_UseInstancing ||
-                  type == MFT_DiffuseVertColor )
+                  type == MFT_DiffuseVertColor ||
+                  type == MFT_DetailMap ||
+                  type == MFT_DetailNormalMap ||
+                  type == MFT_DiffuseMapAtlas)
          newFeatures.addFeature( type );
 
       // Add any transform features.
@@ -699,12 +702,6 @@ void ProcessedPrePassMaterial::_determineFeatures( U32 stageNum,
                mMaterial->mDynamicCubemap ) )
    newFeatures.addFeature( MFT_CubeMap );
    
-   if (fd.features.hasFeature( MFT_DetailMap ))
-       newFeatures.addFeature( MFT_DetailMap );
-   if (fd.features.hasFeature( MFT_DetailNormalMap ))
-       newFeatures.addFeature( MFT_DetailNormalMap );
-   if (fd.features.hasFeature( MFT_DiffuseMapAtlas ))
-       newFeatures.addFeature( MFT_DiffuseMapAtlas );
 #endif
 
    // Deferred Shading : Disable Unused Features
