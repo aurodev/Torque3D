@@ -42,9 +42,9 @@ float4 main( PFXVertToPix IN ) : COLOR0
  
    // Apply gamma correction
    color.rgb = pow( abs(color.rgb), OneOverGamma );
- 
+   
    // Apply contrast
-   color.rgb = ((color.rgb - 0.5f) * max(Contrast, 0)) + 0.5f;
+   color.rgb = ((color.rgb - 0.5f) * Contrast) + 0.5f;
  
    // Apply brightness
    color.rgb += Brightness;

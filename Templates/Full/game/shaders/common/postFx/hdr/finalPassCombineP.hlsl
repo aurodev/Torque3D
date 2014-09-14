@@ -94,7 +94,7 @@ float4 main( PFXVertToPix IN ) : COLOR0
    sample.rgb = pow( abs(sample.rgb), g_fOneOverGamma );
  
    // Apply contrast
-   sample.rgb = ((sample.rgb - 0.5f) * max(Contrast, 0)) + 0.5f;
+   sample.rgb = ((sample.rgb - 0.5f) * Contrast) + 0.5f;
  
    // Apply brightness
    sample.rgb += Brightness;
