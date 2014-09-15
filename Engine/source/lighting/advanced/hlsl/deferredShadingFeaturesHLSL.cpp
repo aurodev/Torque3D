@@ -413,7 +413,7 @@ void DeferredSpecStrengthHLSL::processPix( Vector<ShaderComponent*> &componentLi
    specStrength->uniform = true;
    specStrength->constSortPos = cspPotentialPrimitive;
 
-   output = new GenOp( "   @.a = @ / 5.0;\r\n", color, specStrength );
+   output = new GenOp( "   @.a = @;\r\n", color, specStrength );
 }
 
 // Spec Power -> Blue Channel ( of Material Info Buffer.
