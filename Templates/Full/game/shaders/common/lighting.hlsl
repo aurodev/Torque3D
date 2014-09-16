@@ -245,7 +245,7 @@ float4 AL_DeferredOutput(
        specularColor = 0.04 * (1 - specularMap) + diffuseColor * specularMap;
    }
 
-   float specularOut = (specularColor * pow(abs(specular), ceil((matInfo.b * 128.0) / AL_ConstantSpecularPower)) * (matInfo.a * 5.0)).r;
+   float specularOut = (specularColor * pow(abs(specular), max(((matInfo.b * 128.0) / AL_ConstantSpecularPower),1.0f))).r * (matInfo.a * 5.0);
    
    lightColor *= shadowAttenuation;
    lightColor += ambient.rgb;
