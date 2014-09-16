@@ -42,8 +42,8 @@ float4 main( PFXVertToPix IN,
 	colorBuffer *= (1.0 - colorBuffer.a);
    }
 
-   colorBuffer *= float4(lightBuffer.rgb, 1.0);
    colorBuffer += float4(specular, specular, specular, 1.0);
+   colorBuffer *= float4(lightBuffer.rgb, 1.0);
 
    return hdrEncode( colorBuffer );   
 }
