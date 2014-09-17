@@ -16,9 +16,11 @@ singleton ShaderData( DeferredColorShader )
 
 // Primary Deferred Shader
 new GFXStateBlockData( AL_DeferredShadingState : PFX_DefaultStateBlock )
-{  
+{
+   cullMode = GFXCullNone;
+   
    samplersDefined = true;
-   samplerStates[0] = SamplerClampLinear;
+   samplerStates[0] = SamplerWrapLinear;
    samplerStates[1] = SamplerWrapLinear;
    samplerStates[2] = SamplerWrapLinear;
 };
