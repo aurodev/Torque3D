@@ -108,5 +108,4 @@ singleton PostEffect( AL_FormatCopy )
    
    texture[0] = "$inTex";
    target = "$backbuffer";
-   targetFormat = "GFXFormatR16G16B16A16";
 };
