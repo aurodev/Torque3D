@@ -180,7 +180,7 @@ GFXDevice::GFXDevice()
 
    // Initialize our drawing utility.
    mDrawer = NULL;
-
+   mFrameTime = PlatformTimer::create();
    // Add a few system wide shader macros.
    GFXShader::addGlobalMacro( "TORQUE", "1" );
    GFXShader::addGlobalMacro( "TORQUE_VERSION", String::ToString(getVersionNumber()) );
@@ -806,7 +806,7 @@ inline bool GFXDevice::beginScene()
 
    // Send the start of frame signal.
    getDeviceEventSignal().trigger( GFXDevice::deStartOfFrame );
-
+   mFrameTime->reset();
    return beginSceneInternal();
 }
 
@@ -1315,7 +1315,7 @@ DefineEngineFunction( getBestHDRFormat, GFXFormat, (),,
    // Figure out the best HDR format.  This is the smallest
    // format which supports blending and filtering.
    Vector<GFXFormat> formats;
-   formats.push_back( GFXFormatR10G10B10A2 );
+   //formats.push_back( GFXFormatR10G10B10A2 );
    formats.push_back( GFXFormatR16G16B16A16F );
    formats.push_back( GFXFormatR16G16B16A16 );    
    GFXFormat format = GFX->selectSupportedFormat(  &GFXDefaultRenderTargetProfile,

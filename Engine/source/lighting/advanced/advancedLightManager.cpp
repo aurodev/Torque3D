@@ -104,7 +104,7 @@ void AdvancedLightManager::activate( SceneManager *sceneManager )
    // we prefer the floating point format if it works.
    Vector<GFXFormat> formats;
    formats.push_back( GFXFormatR16G16B16A16F );
-   formats.push_back( GFXFormatR16G16B16A16 );
+   //formats.push_back( GFXFormatR16G16B16A16 );
    GFXFormat blendTargetFormat = GFX->selectSupportedFormat( &GFXDefaultRenderTargetProfile,
                                                          formats,
                                                          true,
@@ -669,8 +669,9 @@ ConsoleFunction( setShadowVizLight, const char*, 2, 2, "" )
    const Point3I &size = texObject->getSize();
    F32 aspect = (F32)size.x / (F32)size.y;
 
-   char *result = Con::getReturnBuffer( 64 );
-   dSprintf( result, 64, "%d %d %g", size.x, size.y, aspect ); 
+   static const U32 bufSize = 64;
+   char *result = Con::getReturnBuffer( bufSize );
+   dSprintf( result, bufSize, "%d %d %g", size.x, size.y, aspect ); 
    return result;
 }
 

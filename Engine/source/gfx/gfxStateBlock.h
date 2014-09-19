@@ -90,6 +90,9 @@ struct GFXSamplerStateDesc
    /// Returns an modulate, clamp, and point sampled state.
    static GFXSamplerStateDesc getClampPoint();
 
+   // If true, texture will be converted to linear space before used.
+   bool inGammaSpace;
+
    bool operator==(const GFXSamplerStateDesc &b) const
    {
       return !dMemcmp(this, &b, sizeof(GFXSamplerStateDesc));
