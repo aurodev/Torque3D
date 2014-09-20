@@ -2,6 +2,9 @@ singleton ShaderData( ClearGBufferShader )
 {
    DXVertexShaderFile = "shaders/common/postFx/postFxV.hlsl";
    DXPixelShaderFile  = "shaders/common/lighting/advanced/deferredClearGBufferP.hlsl";
+   
+   OGLVertexShaderFile = "shaders/common/postFx/gl/postFxV.glsl";
+   OGLPixelShaderFile  = "shaders/common/lighting/advanced/gl/deferredClearGBufferP.glsl";
 
    pixVersion = 2.0;   
 };
@@ -10,6 +13,9 @@ singleton ShaderData( DeferredColorShader )
 {
    DXVertexShaderFile = "shaders/common/postFx/postFxV.hlsl";
    DXPixelShaderFile  = "shaders/common/lighting/advanced/deferredColorShaderP.hlsl";
+   
+   OGLVertexShaderFile = "shaders/common/postFx/gl/postFxV.glsl";
+   OGLPixelShaderFile  = "shaders/common/lighting/advanced/gl/deferredColorShaderP.glsl";
 
    pixVersion = 2.0;   
 };
@@ -29,6 +35,9 @@ new ShaderData( AL_DeferredShader )
 {
    DXVertexShaderFile = "shaders/common/postFx/postFxV.hlsl";
    DXPixelShaderFile  = "shaders/common/lighting/advanced/deferredShadingP.hlsl";
+   
+   OGLVertexShaderFile = "shaders/common/postFx/gl/postFxV.glsl";
+   OGLPixelShaderFile  = "shaders/common/lighting/advanced/gl/deferredShadingP.glsl";
 
    samplerNames[0] = "colorBufferTex";
    samplerNames[1] = "lightPrePassTex";
