@@ -707,7 +707,7 @@ void ShaderFeatureGLSL::getWsPosition( Vector<ShaderComponent*> &componentList,
 	
    Var *objTrans = getObjTrans( componentList, useInstancing, meta );
 	
-   meta->addStatement( new GenOp( "   @ = tMul( @, float4( @.xyz, 1 ) ).xyz;\r\n", 
+   meta->addStatement( new GenOp( "   @ = tMul( @, vec4( @.xyz, 1 ) ).xyz;\r\n", 
 											wsPosition, objTrans, inPosition ) );
 }
 
@@ -827,6 +827,12 @@ Var* ShaderFeatureGLSL::addOutDetailTexCoord(   Vector<ShaderComponent*> &compon
 // Base Texture
 //****************************************************************************
 
+DiffuseMapFeatGLSL::DiffuseMapFeatGLSL()
+   : mTorqueDep( "shaders/common/gl/torque.GLSL" )
+{
+   addDependency( &mTorqueDep );
+}
+
 void DiffuseMapFeatGLSL::processVert( Vector<ShaderComponent*> &componentList, 
                                        const MaterialFeatureData &fd )
 {
@@ -943,7 +949,7 @@ void DiffuseMapFeatGLSL::processPix(   Vector<ShaderComponent*> &componentList,
 #ifdef DEBUG_ATLASED_UV_COORDS
       if(!fd.features[MFT_PrePassConditioner])
       {
-         meta->addStatement(new GenOp("   @ = float4(@.xy, mipLod / @.w, 1.0);\r\n", new DecOp(diffColor), inTex, atParams));
+         meta->addStatement(new GenOp("   @ = vec4(@.xy, mipLod / @.w, 1.0);\r\n", new DecOp(diffColor), inTex, atParams));
          meta->addStatement(new GenOp("   @; return OUT;\r\n", assignColor(diffColor, Material::Mul)));
          return;
       }
@@ -951,7 +957,7 @@ void DiffuseMapFeatGLSL::processPix(   Vector<ShaderComponent*> &componentList,
 
       if(is_sm3)
       {
-         meta->addStatement(new GenOp( "   @ = tex2Dlod(@, float4(@, 0.0, mipLod));\r\n", 
+         meta->addStatement(new GenOp( "   @ = tex2Dlod(@, vec4(@, 0.0, mipLod));\r\n", 
             new DecOp(diffColor), diffuseMap, inTex));
       }
       else
@@ -1093,8 +1099,14 @@ void DiffuseFeatureGLSL::processPix(   Vector<ShaderComponent*> &componentList,
    diffuseMaterialColor->uniform = true;
    diffuseMaterialColor->constSortPos = cspPotentialPrimitive;
 
+   ShaderFeature::OutputTarget targ = ShaderFeature::DefaultTarget;
+
+   Var *col = (Var*)LangElement::find( "col1" );
+   if (col)
+      targ = ShaderFeature::RenderTarget1;
+
    MultiLine* meta = new MultiLine;
-   meta->addStatement( new GenOp( "   @;\r\n", assignColor( diffuseMaterialColor, Material::Mul ) ) );
+   meta->addStatement( new GenOp( "   @;\r\n", assignColor( diffuseMaterialColor, Material::Mul, NULL, targ ) ) );
    output = meta;
 }
 
@@ -1226,9 +1238,9 @@ void LightmapFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
          // Lightmap has already been included in the advanced light bin, so
          // no need to do any sampling or anything
          if(bPreProcessedLighting)
-            statement = new GenOp( "float4(@, 1.0)", inColor );
+            statement = new GenOp( "vec4(@, 1.0)", inColor );
          else
-            statement = new GenOp( "tex2D(@, @) + float4(@.rgb, 0.0)", lightMap, inTex, inColor );
+            statement = new GenOp( "tex2D(@, @) + vec4(@.rgb, 0.0)", lightMap, inTex, inColor );
       }
    }
    
@@ -1507,9 +1519,9 @@ void VertLitGLSL::processPix(   Vector<ShaderComponent*> &componentList,
          // the dynamic light buffer, and it already has the baked-vertex-color 
          // included in it
          if(bPreProcessedLighting)
-            outColor = new GenOp( "float4(@.rgb, 1.0)", rtLightingColor );
+            outColor = new GenOp( "vec4(@.rgb, 1.0)", rtLightingColor );
          else
-            outColor = new GenOp( "float4(@.rgb + @.rgb, 1.0)", rtLightingColor, outColor );
+            outColor = new GenOp( "vec4(@.rgb + @.rgb, 1.0)", rtLightingColor, outColor );
       }
    }
    
@@ -1566,6 +1578,9 @@ void DetailFeatGLSL::processPix( Vector<ShaderComponent*> &componentList,
    // and a simple multiplication with the detail map.
 
    LangElement *statement = new GenOp( "( tex2D(@, @) * 2.0 ) - 1.0", detailMap, inTex );
+   if (  fd.features[MFT_DeferredDiffuseMap])
+       output = new GenOp( "   @;\r\n", assignColor( statement, Material::Add, NULL, ShaderFeature::RenderTarget1 ) );
+   else
    output = new GenOp( "   @;\r\n", assignColor( statement, Material::Add ) );
 }
 
@@ -1625,7 +1640,7 @@ void VertPositionGLSL::processVert( Vector<ShaderComponent*> &componentList,
 	
 	Var *modelview = getModelView( componentList, fd.features[MFT_UseInstancing], meta );
    
-   meta->addStatement( new GenOp( "   @ = tMul(@, float4(@.xyz,1));\r\n", 
+   meta->addStatement( new GenOp( "   @ = tMul(@, vec4(@.xyz,1));\r\n", 
        outPosition, modelview, inPosition ) );   
    
 	output = meta;
@@ -1649,10 +1664,11 @@ void ReflectCubeFeatGLSL::processVert( Vector<ShaderComponent*> &componentList,
    // If a base or bump tex is present in the material, but not in the
    // current pass - we need to add one to the current pass to use
    // its alpha channel as a gloss map.  Here we just need the tex coords.
-   if( !fd.features[MFT_DiffuseMap] &&
+   if( !fd.features[MFT_DiffuseMap] && !fd.features[MFT_DeferredDiffuseMap] &&
        !fd.features[MFT_NormalMap] )
    {
       if( fd.materialFeatures[MFT_DiffuseMap] ||
+          fd.materialFeatures[MFT_DeferredDiffuseMap] ||
           fd.materialFeatures[MFT_NormalMap] )
       {
          // find incoming texture var
@@ -1743,10 +1759,12 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    // current pass - we need to add one to the current pass to use
    // its alpha channel as a gloss map.
    if( !fd.features[MFT_DiffuseMap] &&
-       !fd.features[MFT_NormalMap] )
+       !fd.features[MFT_NormalMap] &&
+       !fd.features[MFT_DeferredDiffuseMap])
    {
       if( fd.materialFeatures[MFT_DiffuseMap] ||
-          fd.materialFeatures[MFT_NormalMap] )
+          fd.materialFeatures[MFT_NormalMap] ||
+          fd.materialFeatures[MFT_DeferredDiffuseMap] )
       {
          // grab connector texcoord register
          Var *inTex = getInTexCoord( "texCoord", "vec2", true, componentList );
@@ -1772,6 +1790,31 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    }
    else
    {
+       if (fd.features[MFT_DeferredDiffuseMap])
+       {
+           if (!glossColor)
+               glossColor = (Var*)LangElement::find( "col1" );
+           if (!fd.features[MFT_DeferredSpecStrength])
+           {
+               meta->addStatement( new GenOp( "   @.a = 0.5;\r\n", glossColor) );
+           } else {
+               Var *specStrength = (Var*)LangElement::find( "specularStrength" );
+               if ( !specStrength )
+               {
+                   specStrength = new Var;
+                   specStrength->setType( "float" );
+                   specStrength->setName( "specularStrength" );
+                   specStrength->uniform = true;
+                   specStrength->constSortPos = cspPotentialPrimitive;
+               }
+               if (fd.features[MFT_DeferredSpecMap]||fd.features[MFT_SpecularMap])
+                   meta->addStatement( new GenOp( "   @.a *= @;\r\n", glossColor, specStrength ) );
+               else
+                   meta->addStatement( new GenOp( "   @.a = @;\r\n", glossColor, specStrength ) );
+               meta->addStatement( new GenOp( "   @ = saturate(@);\r\n", glossColor, glossColor));
+           }
+       }
+       else
       glossColor = (Var*) LangElement::find( "diffuseColor" );
       if( !glossColor )
          glossColor = (Var*) LangElement::find( "bumpNormal" );
@@ -1801,7 +1844,22 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
       if ( fd.materialFeatures[MFT_RTLighting] )
       attn =(Var*)LangElement::find("d_NL_Att");
 
-   LangElement *texCube = new GenOp( "texCUBE( @, @ )", cubeMap, reflectVec );
+   // Determine roughness
+   Var *specPower = (Var*)LangElement::find( "specularPower" );
+   if ( !specPower )
+   {
+      specPower = new Var;
+      specPower->setType( "float" );
+      specPower->setName( "specularPower" );
+      specPower->uniform = true;
+      specPower->constSortPos = cspPotentialPrimitive;
+   }
+
+   // Cube LOD level = (1.0 - Roughness) * 8
+   // mip_levle =  min((1.0 - u_glossiness)*11.0 + 1.0, 8.0)
+   //LangElement *texCube = new GenOp( "texCUBElod( @, vec4(@, min((1.0 - (@ / 128.0)) * 11.0 + 1.0, 8.0)) )", cubeMap, reflectVec, specPower );
+   LangElement *texCube = new GenOp( "texCUBElod( @, vec4(@, (@ / 128.0) * 8) )", cubeMap, reflectVec, specPower );
+
    LangElement *lerpVal = NULL;
    Material::BlendOp blendOp = Material::LerpAlpha;
 
@@ -1822,8 +1880,10 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
       else
          blendOp = Material::Mul;
    }
-
-   meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal ) ) );         
+   if (fd.features[MFT_DeferredDiffuseMap])
+       meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal, ShaderFeature::RenderTarget1 ) ) );
+   else
+       meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal ) ) );         
    output = meta;
 }
 
@@ -1831,7 +1891,7 @@ ShaderFeature::Resources ReflectCubeFeatGLSL::getResources( const MaterialFeatur
 {
    Resources res; 
 
-   if( fd.features[MFT_DiffuseMap] ||
+   if( fd.features[MFT_DiffuseMap] || fd.features[MFT_DeferredDiffuseMap] ||
        fd.features[MFT_NormalMap] )
    {
       res.numTex = 1;
@@ -1854,10 +1914,12 @@ void ReflectCubeFeatGLSL::setTexData(  Material::StageData &stageDat,
    // set up a gloss map if one is not present in the current pass
    // but is present in the current material stage
    if( !passData.mFeatureData.features[MFT_DiffuseMap] &&
+       !passData.mFeatureData.features[MFT_DeferredDiffuseMap] &&
        !passData.mFeatureData.features[MFT_NormalMap] )
    {
       GFXTextureObject *tex = stageDat.getTex( MFT_DetailMap );
-      if (  tex && stageFeatures.features[MFT_DiffuseMap] )
+      if (  tex &&
+            (stageFeatures.features[MFT_DiffuseMap] || stageFeatures.features[MFT_DeferredDiffuseMap]) )
       {
          passData.mSamplerNames[ texIndex ] = "diffuseMap";
          passData.mTexSlot[ texIndex++ ].texObject = tex;
@@ -1968,7 +2030,7 @@ void RTLightingFeatGLSL::processVert(  Vector<ShaderComponent*> &componentList,
       Var *objTrans = getObjTrans( componentList, fd.features[MFT_UseInstancing], meta );
    
       // Transform the normal to world space.
-      meta->addStatement( new GenOp( "   @ = tMul( @, float4( normalize( @ ), 0.0 ) ).xyz;\r\n", outNormal, objTrans, inNormal ) );
+      meta->addStatement( new GenOp( "   @ = tMul( @, vec4( normalize( @ ), 0.0 ) ).xyz;\r\n", outNormal, objTrans, inNormal ) );
    }
 
 	addOutWsPosition( componentList, fd.features[MFT_UseInstancing], meta );
@@ -2026,7 +2088,7 @@ void RTLightingFeatGLSL::processPix(   Vector<ShaderComponent*> &componentList,
    // feature (this is done for BL terrain lightmaps).
    LangElement *lightMask = LangElement::find( "lightMask" );
    if ( !lightMask )
-      lightMask = new GenOp( "float4( 1, 1, 1, 1 )" );
+      lightMask = new GenOp( "vec4( 1, 1, 1, 1 )" );
 
    // Get all the light constants.
    Var *inLightPos  = new Var( "inLightPos", "vec4" );
@@ -2081,7 +2143,7 @@ void RTLightingFeatGLSL::processPix(   Vector<ShaderComponent*> &componentList,
       rtShading, specular ) );
 
    // Apply the lighting to the diffuse color.
-   LangElement *lighting = new GenOp( "float4( @.rgb + @.rgb, 1 )", rtShading, ambient );
+   LangElement *lighting = new GenOp( "vec4( @.rgb + @.rgb, 1 )", rtShading, ambient );
    meta->addStatement( new GenOp( "   @;\r\n", assignColor( lighting, Material::Mul ) ) );
    output = meta;  
 }
@@ -2352,6 +2414,8 @@ void AlphaTestGLSL::processPix(  Vector<ShaderComponent*> &componentList,
 
    // If we don't have a color var then we cannot do an alpha test.
    Var *color = (Var*)LangElement::find( "col" );
+   if ( !color )
+       color = (Var*)LangElement::find( "col1" );
    if ( !color )
    {
       output = NULL;
