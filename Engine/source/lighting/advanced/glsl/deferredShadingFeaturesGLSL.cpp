@@ -232,9 +232,8 @@ void DeferredSpecMapGLSL::processPix( Vector<ShaderComponent*> &componentList, c
    {
       // create color var
       color = new Var;
-      color->setType( "fragout" );
+      color->setType( "vec4" );
       color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget1) );
-      color->setStructName( "OUT" );
    }
 
    // create texture var
@@ -246,7 +245,7 @@ void DeferredSpecMapGLSL::processPix( Vector<ShaderComponent*> &componentList, c
    specularMap->constNum = Var::getTexUnitNum();
    LangElement *texOp = new GenOp( "tex2D(@, @)", specularMap, texCoord );
 
-   output = new GenOp( "   @.a = dot(tex2D(@, @).rgb, float3(0.3, 0.59, 0.11));\r\n", color, specularMap, texCoord );
+   output = new GenOp( "   @.a = dot(tex2D(@, @).rgb, float3(0.3, 0.59, 0.11));\r\n", new DecOp(color), specularMap, texCoord );
 }
 
 ShaderFeature::Resources DeferredSpecMapGLSL::getResources( const MaterialFeatureData &fd )
@@ -301,12 +300,11 @@ void DeferredSpecColorGLSL::processPix( Vector<ShaderComponent*> &componentList,
    {
            // create color var
            color = new Var;
-           color->setType("fragout");
+           color->setType( "vec4" );
            color->setName(getOutputTargetVarName(ShaderFeature::RenderTarget1));
-           color->setStructName("OUT");
    }
    
-   output = new GenOp("   @.a = dot(@.rgb, float3(0.3, 0.59, 0.11));\r\n", color, specularColor);
+   output = new GenOp("   @.a = dot(@.rgb, float3(0.3, 0.59, 0.11));\r\n", new DecOp(color), specularColor);
 }
 
 // Black -> Alpha of Color Buffer (representing no specular)
@@ -321,12 +319,11 @@ void DeferredEmptySpecGLSL::processPix( Vector<ShaderComponent*> &componentList,
    {
       // create color var
       color = new Var;
-      color->setType( "fragout" );
+      color->setType( "vec4" );
       color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget1) );
-      color->setStructName( "OUT" );
    }
 
-   output = new GenOp( "   @.a = 0.0;\r\n", color );
+   output = new GenOp( "   @.a = 0.0;\r\n", new DecOp(color) );
 }
 
 void DeferredEmptySpecGLSL::processVert( Vector<ShaderComponent*> &componentList, 
@@ -354,9 +351,8 @@ void DeferredGlossMapGLSL::processPix( Vector<ShaderComponent*> &componentList, 
    {
       // create color var
       color = new Var;
-      color->setType( "fragout" );
+      color->setType( "vec4" );
       color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-      color->setStructName( "OUT" );
    }
 
    // create texture var
@@ -371,7 +367,7 @@ void DeferredGlossMapGLSL::processPix( Vector<ShaderComponent*> &componentList, 
    }
    LangElement *texOp = new GenOp( "tex2D(@, @)", specularMap, texCoord );
 
-   output = new GenOp( "   @.b = @.a;\r\n", color, texOp );
+   output = new GenOp( "   @.b = @.a;\r\n", new DecOp(color), texOp );
 }
 
 // Material Info Flags -> Red ( Flags ) of Material Info Buffer.
@@ -383,9 +379,8 @@ void DeferredMatInfoFlagsGLSL::processPix( Vector<ShaderComponent*> &componentLi
    {
       // create color var
       color = new Var;
-      color->setType( "fragout" );
+      color->setType( "vec4" );
       color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-      color->setStructName( "OUT" );
    }
 
    Var *matInfoFlags = new Var;
@@ -394,7 +389,7 @@ void DeferredMatInfoFlagsGLSL::processPix( Vector<ShaderComponent*> &componentLi
    matInfoFlags->uniform = true;
    matInfoFlags->constSortPos = cspPotentialPrimitive;
 
-   output = new GenOp( "   @.r = @;\r\n", color, matInfoFlags );
+   output = new GenOp( "   @.r = @;\r\n", new DecOp(color), matInfoFlags );
 }
 
 // Spec Strength -> Alpha Channel of Material Info Buffer.
@@ -406,9 +401,8 @@ void DeferredSpecStrengthGLSL::processPix( Vector<ShaderComponent*> &componentLi
    {
       // create color var
       color = new Var;
-      color->setType( "fragout" );
+      color->setType( "vec4" );
       color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-      color->setStructName( "OUT" );
    }
 
    Var *specStrength = new Var;
@@ -417,7 +411,7 @@ void DeferredSpecStrengthGLSL::processPix( Vector<ShaderComponent*> &componentLi
    specStrength->uniform = true;
    specStrength->constSortPos = cspPotentialPrimitive;
 
-   output = new GenOp( "   @.a = @;\r\n", color, specStrength );
+   output = new GenOp( "   @.a = @;\r\n", new DecOp(color), specStrength );
 }
 
 // Spec Power -> Blue Channel ( of Material Info Buffer.
@@ -429,9 +423,8 @@ void DeferredSpecPowerGLSL::processPix( Vector<ShaderComponent*> &componentList,
    {
       // create color var
       color = new Var;
-      color->setType( "fragout" );
+      color->setType( "vec4" );
       color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-      color->setStructName( "OUT" );
    }
 
    Var *specPower = new Var;
@@ -440,7 +433,7 @@ void DeferredSpecPowerGLSL::processPix( Vector<ShaderComponent*> &componentList,
    specPower->uniform = true;
    specPower->constSortPos = cspPotentialPrimitive;
 
-   output = new GenOp( "   @ = float4(0.0, 0.0, @ / 128.0, 0.0);\r\n", color, specPower );
+   output = new GenOp( "   @ = float4(0.0, 0.0, @ / 128.0, 0.0);\r\n", new DecOp(color), specPower );
 }
 
 // Emissive -> Material Info Buffer.
@@ -461,9 +454,8 @@ void DeferredTranslucencyMapGLSL::processPix( Vector<ShaderComponent*> &componen
    {
       // create color var
       color = new Var;
-      color->setType( "fragout" );
+      color->setType( "vec4" );
       color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-      color->setStructName( "OUT" );
    }
 
    // create texture var
@@ -474,7 +466,7 @@ void DeferredTranslucencyMapGLSL::processPix( Vector<ShaderComponent*> &componen
    translucencyMap->sampler = true;
    translucencyMap->constNum = Var::getTexUnitNum();
 
-   output = new GenOp( "   @.g = dot(tex2D(@, @).rgb, float3(0.3, 0.59, 0.11));\r\n", color, translucencyMap, texCoord );
+   output = new GenOp( "   @.g = dot(tex2D(@, @).rgb, float3(0.3, 0.59, 0.11));\r\n", new DecOp(color), translucencyMap, texCoord );
    
 }
 
@@ -510,11 +502,10 @@ void DeferredTranslucencyEmptyGLSL::processPix( Vector<ShaderComponent*> &compon
    {
       // create color var
       color = new Var;
-      color->setType( "fragout" );
+      color->setType( "vec4" );
       color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-      color->setStructName( "OUT" );
    }
-   output = new GenOp( "   @.g = 0.0;\r\n", color );
+   output = new GenOp( "   @.g = 0.0;\r\n", new DecOp(color) );
    
 }
 
