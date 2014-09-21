@@ -1014,7 +1014,7 @@ void RenderPrePassMgr::_initShaders()
    ShaderData *shaderData;
    mClearGBufferShader = Sim::findObject( "ClearGBufferShader", shaderData ) ? shaderData->getShader() : NULL;
    if ( !mClearGBufferShader )
-      Con::errorf( "RenderPrePassMgr::_initShaders - could not find ClearBufferShader" );
+      Con::errorf( "RenderPrePassMgr::_initShaders - could not find ClearGBufferShader" );
 
    // Create StateBlocks
    GFXStateBlockDesc desc;
