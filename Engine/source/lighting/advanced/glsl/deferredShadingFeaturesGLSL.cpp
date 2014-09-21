@@ -217,7 +217,7 @@ void DeferredDiffuseColorGLSL::processPix( Vector<ShaderComponent*> &componentLi
 // Empty Color -> Color Buffer
 void DeferredEmptyColorGLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
 {
-   output = new GenOp( "   @;\r\n", assignColor( new GenOp( "1.0" ), Material::None, NULL, ShaderFeature::RenderTarget1 ) );
+   output = new GenOp( "   @;\r\n", assignColor( new GenOp( "vec4(1.0)" ), Material::None, NULL, ShaderFeature::RenderTarget1 ) );
 }
 
 // Specular Map -> Alpha of Color Buffer ( greyscaled )
