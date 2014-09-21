@@ -19,22 +19,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
+
 #include "../../../gl/hlslCompat.glsl"
+#include "shadergen:/autogenConditioners.h"
+#include "shaders/common/gl/torque.glsl"
+#include "shaders/common/postFx/gl/postFx.glsl"
 
-layout(location = 0) out float4 col;
-layout(location = 1) out float4 col1;
-layout(location = 2) out float4 col2;
-//-----------------------------------------------------------------------------
-// Main                                                                        
-//-----------------------------------------------------------------------------
-void main( )
-{   
-   // Clear Prepass Buffer ( Normals/Depth );
-   col =  float4(1.0, 1.0, 1.0, 1.0);
-
-   // Clear Color Buffer.
-   col1 = float4(0.0, 0.0, 0.0, 1.0);
-
-   // Clear Material Info Buffer.
-   col2 = float4(0.0, 0.0, 0.0, 1.0);
+uniform sampler2D colorBufferTex;
+void main()
+{     
+   OUT_FragColor0 = float4(tex2D( colorBufferTex, uv0 ).rgb, 1.0);   
 }

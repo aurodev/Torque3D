@@ -64,8 +64,11 @@ new ShaderData( AL_ColorBufferShader )
 {
    DXVertexShaderFile = "shaders/common/postFx/postFxV.hlsl";
    DXPixelShaderFile  = "shaders/common/lighting/advanced/dbgColorBufferP.hlsl";
+   
+   OGLVertexShaderFile = "shaders/common/postFx/gl/postFxV.glsl";
+   OGLPixelShaderFile  = "shaders/common/lighting/advanced/gl/dbgColorBufferP.glsl";
 
-   samplerNames[0] = "color";
+   samplerNames[0] = "colorBufferTex";
    pixVersion = 2.0;
 };
 
