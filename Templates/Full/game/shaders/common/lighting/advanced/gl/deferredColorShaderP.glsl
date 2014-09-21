@@ -22,10 +22,9 @@
 
 #include "../../../gl/hlslCompat.glsl"
 
-out float4 col;
-out float4 col1;
-out float4 col2;
-
+layout(location = 0) out float4 col;
+layout(location = 1) out float4 col1;
+layout(location = 2) out float4 col2;
 //-----------------------------------------------------------------------------
 // Main                                                                        
 //-----------------------------------------------------------------------------
