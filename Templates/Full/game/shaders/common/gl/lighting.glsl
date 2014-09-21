@@ -20,6 +20,7 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
+#include "shaders/common/gl/torque.glsl"
 
 #ifndef TORQUE_SHADERGEN
 
@@ -216,4 +217,37 @@ float AL_CalcSpecular( vec3 toLight, vec3 normal, vec3 toEye )
 
    // Return the specular factor.
    return pow( max( specVal, 0.00001f ), AL_ConstantSpecularPower );
+}
+
+/// The output for Deferred Lighting
+///
+///   @param toLight    Normalized vector representing direction from the pixel 
+///                     being lit, to the light source, in world space.
+///
+///   @param normal  Normalized surface normal.
+///   
+///   @param toEye   The normalized vector representing direction from the pixel 
+///                  being lit to the camera.
+///
+vec4 AL_DeferredOutput(
+		vec3 	lightColor,
+        vec3  diffuseColor,
+        vec4 	matInfo,
+        vec4 	ambient,
+        float   specular, 
+		float 	specularMap, 
+		float 	shadowAttenuation)
+{
+   vec3 specularColor = vec3(specularMap, specularMap, specularMap);
+   bool metalness = getFlag(matInfo.r, 3);
+   if ( metalness )
+   {
+       specularColor = 0.04 * (1 - specularMap) + diffuseColor * specularMap;
+   }
+
+   float specularOut = (specularColor * pow(abs(specular), max(((matInfo.b * 128.0) / AL_ConstantSpecularPower),1.0f))).r * (matInfo.a * 5.0);
+   
+   lightColor *= shadowAttenuation;
+   lightColor += ambient.rgb;
+   return vec4(lightColor.rgb, specularOut); 
 }

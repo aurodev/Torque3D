@@ -28,10 +28,12 @@
 #include "../../../gl/lighting.glsl"
 #include "../../shadowMap/shadowMapIO_GLSL.h"
 #include "softShadow.glsl"
+#include "shaders/common/gl/torque.glsl"
 
 in vec4 wsEyeDir;
 in vec4 ssPos;
 in vec4 vsEyeDir;
+in vec4 color;
 
 #ifdef USE_COOKIE_TEX
 
@@ -109,6 +111,10 @@ uniform sampler2D prePassBuffer;
 	uniform sampler2D shadowMap;
 #endif
 
+uniform sampler2D lightBuffer;
+uniform sampler2D colorBuffer;
+uniform sampler2D matInfoBuffer;
+
 uniform vec4 rtParams0;
 
 uniform vec3 lightPosition;
@@ -121,13 +127,20 @@ uniform vec4 vsFarPlane;
 uniform mat3 viewToLightProj;
 uniform vec4 lightParams;
 uniform float shadowSoftness;
-			   
 
-void main()               
+void main()
 {   
    // Compute scene UV
    vec3 ssPos = ssPos.xyz / ssPos.w;
    vec2 uvScene = getUVFromSSPos( ssPos, rtParams0 );
+   
+   // Emissive.
+   vec4 matInfo = tex2D( matInfoBuffer, uvScene );   
+   bool emissive = getFlag( matInfo.r, 0 );
+   if ( emissive )
+   {
+       return vec4(0.0, 0.0, 0.0, 0.0);
+   }
    
    // Sample/unpack the normal/z data
    vec4 prepassSample = prepassUncondition( prePassBuffer, uvScene );
@@ -229,5 +242,22 @@ void main()
       addToResult = ( 1.0 - shadowed ) * abs(lightMapParams);
    }
 
-   OUT_FragColor0 = lightinfoCondition( lightColorOut, Sat_NL_Att, specular, addToResult );
+   bool translucent = getFlag( matInfo.r, 2 );
+   if ( translucent && matInfo.g > 0.1 )
+   {
+      float fLTDistortion = 0.0;
+      int iLTPower = 10;
+      float fLTAmbient = 0.0;
+      float fLTThickness = matInfo.g;
+      float fLTScale = 1.0;
+
+      vec3 vLTLight = lightVec + normal * fLTDistortion;
+      float fLTDot = pow(saturate(dot(-vsEyeDir.xyz, -vLTLight)), iLTPower) * fLTScale;
+      vec3 fLT = atten * (fLTDot + fLTAmbient) * fLTThickness;
+
+      addToResult = lightColor * vec4( fLT, 0.0);
+   }
+
+   vec4 colorSample = tex2D( colorBuffer, uvScene );
+   OUT_FragColor0 = AL_DeferredOutput(lightColorOut, colorSample.rgb, matInfo, addToResult, specular, colorSample.a, Sat_NL_Att);
 }
