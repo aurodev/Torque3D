@@ -62,6 +62,8 @@ float4 main( Conn In ) : COLOR0
    Out = lerp( color, nightSkyColor, nightInterpAndExposure.y );
    
    Out.a = 1;
+
    Out = saturate(Out);
+
    return hdrEncode( Out );
 }

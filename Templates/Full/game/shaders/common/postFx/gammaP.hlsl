@@ -48,6 +48,6 @@ float4 main( PFXVertToPix IN ) : COLOR0
  
    // Apply brightness
    color.rgb += Brightness;
- 
+
     return color;    
 }

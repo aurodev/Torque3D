@@ -114,21 +114,21 @@ ShaderFeature::Resources PixelSpecularHLSL::getResources( const MaterialFeatureD
 
 void SpecularMapHLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
 {
-   // Get the texture coord.
-   Var *texCoord = getInTexCoord( "texCoord", "float2", true, componentList );
+	   // Get the texture coord.
+	   Var *texCoord = getInTexCoord("texCoord", "float2", true, componentList);
 
-   // create texture var
-   Var *specularMap = new Var;
-   specularMap->setType( "sampler2D" );
-   specularMap->setName( "specularMap" );
-   specularMap->uniform = true;
-   specularMap->sampler = true;
-   specularMap->constNum = Var::getTexUnitNum();
+	   // create texture var
+	   Var *specularMap = new Var;
+	   specularMap->setType("sampler2D");
+	   specularMap->setName("specularMap");
+	   specularMap->uniform = true;
+	   specularMap->sampler = true;
+	   specularMap->constNum = Var::getTexUnitNum();
    LangElement *texOp = new GenOp( "tex2D(@, @)", specularMap, texCoord );
 
    Var *specularColor = new Var( "specularColor", "float4" );
 
-   output = new GenOp( "   @ = @;\r\n", new DecOp( specularColor ), texOp );
+	   output = new GenOp("   @ = @;\r\n", new DecOp(specularColor), texOp);
 }
 
 ShaderFeature::Resources SpecularMapHLSL::getResources( const MaterialFeatureData &fd )

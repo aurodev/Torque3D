@@ -239,9 +239,9 @@ class DiffuseMapFeatGLSL : public ShaderFeatureGLSL
 
 protected:
 
-   ShaderIncludeDependency mTorqueDep;
+	ShaderIncludeDependency mTorqueDep;
 public:
-   DiffuseMapFeatGLSL();
+	DiffuseMapFeatGLSL();
    virtual void processVert( Vector<ShaderComponent*> &componentList,
                              const MaterialFeatureData &fd );
 

@@ -48,7 +48,6 @@ protected:
    U32 mLastTexIndex;
 
 public:
-
    virtual void processVert( Vector<ShaderComponent*> &componentList,
                               const MaterialFeatureData &fd );
 

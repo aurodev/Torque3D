@@ -113,7 +113,7 @@ void ShaderGen::initShaderGen()
       if (!Torque::FS::VerifyWriteAccess(shaderPath))
       {
          // we don't have write access so enable the virtualized memory store
-         Con::warnf("ShaderGen: Write permission unavailable, switching to virtualized memory storage");
+		  Con::warnf("ShaderGen: Write permission unavailable, switching to virtualized memory storage");
          shaderPath.clear();
       }
 

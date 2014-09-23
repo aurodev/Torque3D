@@ -68,6 +68,8 @@ void _initShaderGenGLSL( ShaderGen *shaderGen )
    FEATUREMGR->registerFeature( MFT_IsTranslucent, new NamedFeatureGLSL( "Translucent" ) );
    FEATUREMGR->registerFeature( MFT_Visibility, new VisibilityFeatGLSL );
    FEATUREMGR->registerFeature( MFT_Fog, new FogFeatGLSL );
+   FEATUREMGR->registerFeature( MFT_LightbufferMRT, new NamedFeatureGLSL( "Lightbuffer MRT" ) );
+   FEATUREMGR->registerFeature( MFT_RenderTarget1_Zero, new RenderTargetZeroGLSL( ShaderFeature::RenderTarget1 ) );
 
 	FEATUREMGR->registerFeature( MFT_NormalsOut, new NormalsOutFeatGLSL );
 	
@@ -79,9 +81,6 @@ void _initShaderGenGLSL( ShaderGen *shaderGen )
    FEATUREMGR->registerFeature( MFT_ParaboloidVertTransform, new ParaboloidVertTransformGLSL );
    FEATUREMGR->registerFeature( MFT_IsSinglePassParaboloid, new NamedFeatureGLSL( "Single Pass Paraboloid" ) );
    FEATUREMGR->registerFeature( MFT_UseInstancing, new NamedFeatureGLSL( "Hardware Instancing" ) );
-
-	FEATUREMGR->registerFeature( MFT_RenderTarget1_Zero, new RenderTargetZeroGLSL
-										 ( ShaderFeature::RenderTarget1 ) );
 	
    FEATUREMGR->registerFeature( MFT_DiffuseMapAtlas, new NamedFeatureGLSL( "Diffuse Map Atlas" ) );
    FEATUREMGR->registerFeature( MFT_NormalMapAtlas, new NamedFeatureGLSL( "Normal Map Atlas" ) );

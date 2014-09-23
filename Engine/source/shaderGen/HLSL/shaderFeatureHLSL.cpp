@@ -827,9 +827,9 @@ Var* ShaderFeatureHLSL::addOutDetailTexCoord(   Vector<ShaderComponent*> &compon
 //****************************************************************************
 
 DiffuseMapFeatHLSL::DiffuseMapFeatHLSL()
-   : mTorqueDep( "shaders/common/torque.hlsl" )
+: mTorqueDep("shaders/common/torque.hlsl")
 {
-   addDependency( &mTorqueDep );
+	addDependency(&mTorqueDep);
 }
 
 void DiffuseMapFeatHLSL::processVert( Vector<ShaderComponent*> &componentList, 
@@ -859,7 +859,7 @@ void DiffuseMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
    diffuseMap->sampler = true;
    diffuseMap->constNum = Var::getTexUnitNum();     // used as texture unit num here
 
-   if (  fd.features[MFT_CubeMap] )
+if (  fd.features[MFT_CubeMap] )
    {
       MultiLine * meta = new MultiLine;
       
@@ -869,10 +869,10 @@ void DiffuseMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
       diffColor->setName( "diffuseColor" );
       LangElement *colorDecl = new DecOp( diffColor );
    
-      meta->addStatement(  new GenOp( "   @ = tex2D(@, @);\r\n", 
-                           colorDecl, 
-                           diffuseMap, 
-                           inTex ) );
+		  meta->addStatement(new GenOp("   @ = tex2D(@, @);\r\n",
+			  colorDecl,
+			  diffuseMap,
+			  inTex));
       
       meta->addStatement( new GenOp( "   @;\r\n", assignColor( diffColor, Material::Mul ) ) );
       output = meta;
@@ -961,17 +961,17 @@ void DiffuseMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
       }
       else
       {
-         meta->addStatement(new GenOp( "   @ = tex2D(@, @);\r\n", 
-            new DecOp(diffColor), diffuseMap, inTex));
-      }
+			  meta->addStatement(new GenOp("   @ = tex2D(@, @);\r\n",
+				  new DecOp(diffColor), diffuseMap, inTex));
+		  }
 
       meta->addStatement(new GenOp( "   @;\r\n", assignColor(diffColor, Material::Mul)));
    }
    else
    {
-      LangElement *statement = new GenOp( "tex2D(@, @)", diffuseMap, inTex );
-      output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul ) );
-   }
+		   LangElement *statement = new GenOp("tex2D(@, @)", diffuseMap, inTex);
+		   output = new GenOp("   @;\r\n", assignColor(statement, Material::Mul));
+	   }
    
 }
 
@@ -1081,7 +1081,7 @@ void OverlayTexFeatHLSL::setTexData(   Material::StageData &stageDat,
    {
       passData.mSamplerNames[texIndex] = "overlayMap";
       passData.mTexSlot[ texIndex++ ].texObject = tex;
-   }
+}
 }
 
 
@@ -1790,12 +1790,11 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
    }
    else
    {
-       if (fd.features[MFT_DeferredDiffuseMap])
-       {
-           if (!glossColor)
-               glossColor = (Var*)LangElement::find( "col1" );
+      if (fd.features[MFT_DeferredDiffuseMap])
+      {
+        glossColor = (Var*)LangElement::find( "col1" );
            if (!fd.features[MFT_DeferredSpecStrength])
-           {
+        {
                meta->addStatement( new GenOp( "   @.a = 0.5;\r\n", glossColor) );
            } else {
                Var *specStrength = (Var*)LangElement::find( "specularStrength" );
@@ -1812,9 +1811,9 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
                else
                    meta->addStatement( new GenOp( "   @.a = @;\r\n", glossColor, specStrength ) );
                meta->addStatement( new GenOp( "   @ = saturate(@);\r\n", glossColor, glossColor));
-           }
-       }
-       else
+        }
+      }
+      else
       glossColor = (Var*) LangElement::find( "diffuseColor" );
       if( !glossColor )
          glossColor = (Var*) LangElement::find( "bumpNormal" );
@@ -1918,8 +1917,7 @@ void ReflectCubeFeatHLSL::setTexData(  Material::StageData &stageDat,
        !passData.mFeatureData.features[MFT_NormalMap] )
    {
       GFXTextureObject *tex = stageDat.getTex( MFT_DetailMap );
-      if (  tex &&
-            (stageFeatures.features[MFT_DiffuseMap] || stageFeatures.features[MFT_DeferredDiffuseMap]) )
+      if (  tex && (stageFeatures.features[MFT_DiffuseMap] || stageFeatures.features[MFT_DeferredDiffuseMap]) )
       {
          passData.mSamplerNames[ texIndex ] = "diffuseMap";
          passData.mTexSlot[ texIndex++ ].texObject = tex;
@@ -2416,7 +2414,7 @@ void AlphaTestHLSL::processPix(  Vector<ShaderComponent*> &componentList,
    // If we don't have a color var then we cannot do an alpha test.
    Var *color = (Var*)LangElement::find( "col" );
    if (!color)
-       color = (Var*)LangElement::find( "col1" );
+	   color = (Var*)LangElement::find("col1");
    if ( !color )
    {
       output = NULL;

@@ -60,6 +60,7 @@ uniform float3    texScale;
 ConnectData main( CloudVert IN )
 {   
    ConnectData OUT;
+
    OUT.hpos = mul(modelview, IN.pos);
    OUT.hpos.w = OUT.hpos.z;
    

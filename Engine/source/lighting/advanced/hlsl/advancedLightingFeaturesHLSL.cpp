@@ -483,7 +483,7 @@ void DeferredPixelSpecularHLSL::processPix(  Vector<ShaderComponent*> &component
 
    // (a^m)^n = a^(m*n)
    meta->addStatement( new GenOp( "   @ = pow( abs(@), max((@ / AL_ConstantSpecularPower),1.0f)) * @;\r\n", 
-      specDecl, d_specular, specPow, specStrength ) );
+		   specDecl, d_specular, specPow, specStrength));
 
    LangElement *specMul = new GenOp( "float4( @.rgb, 0 ) * @", specCol, specular );
    LangElement *final = specMul;

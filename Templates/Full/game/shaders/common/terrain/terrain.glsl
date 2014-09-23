@@ -35,6 +35,7 @@ float calcBlend( float texId, vec2 layerCoord, float layerSize, vec4 layerSample
    // Use step to see if any of the layer samples 
    // match the current texture id.
    vec4 factors = step( texId, layerSample );
+   
 
    // This is a custom bilinear filter.
 
