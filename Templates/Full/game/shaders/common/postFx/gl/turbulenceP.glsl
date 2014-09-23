@@ -34,6 +34,8 @@ in vec2 uv0;
 
 #define IN_uv0 uv0
 
+out vec4 OUT_FragColor0;
+
 void main() 
 {
 	float speed = 2.0;

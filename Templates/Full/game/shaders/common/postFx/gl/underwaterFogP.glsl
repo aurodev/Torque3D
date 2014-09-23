@@ -51,6 +51,8 @@ uniform vec2    nearFar;
 uniform vec4    rtParams0;
 uniform float     waterDepthGradMax;
 
+out vec4 OUT_FragColor0;
+
 void main() 
 {    
    //vec2 prepassCoord = IN_uv0;

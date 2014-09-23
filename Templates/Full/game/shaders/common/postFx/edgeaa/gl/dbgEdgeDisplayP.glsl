@@ -28,6 +28,8 @@ in vec2 uv0;
 
 uniform sampler2D edgeBuffer;
 
+out vec4 OUT_FragColor0;
+
 void main()
 {
    OUT_FragColor0 = vec4( texture( edgeBuffer, IN_uv0 ).rrr, 1.0 );

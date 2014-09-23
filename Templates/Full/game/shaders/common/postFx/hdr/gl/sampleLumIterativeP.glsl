@@ -26,6 +26,7 @@
 uniform sampler2D inputTex;
 uniform vec2 oneOverTargetSize;
 
+out vec4 OUT_FragColor0;
 
 const vec2 gTapOffsets[16] = vec2[]
 (

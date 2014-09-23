@@ -28,6 +28,8 @@ uniform float damageFlash;
 uniform float whiteOut;
 uniform sampler2D backBuffer;
 
+out vec4 OUT_FragColor0;
+
 void main()
 {
  vec4 color1 = texture(backBuffer, IN_uv0); 

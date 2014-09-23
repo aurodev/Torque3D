@@ -30,6 +30,8 @@ uniform float gaussMultiplier;
 uniform float gaussMean;
 uniform float gaussStdDev;
 
+out vec4 OUT_FragColor0;
+
 #define D3DX_PI 3.141592654
 
 float computeGaussianValue( float x, float mean, float std_deviation )

@@ -36,6 +36,8 @@ uniform float weight;
 uniform float decay;
 uniform float exposure;
 
+out vec4 OUT_FragColor0;
+
 void main()
 {  
     vec4 texCoord = vec4( IN_uv0.xy, 0, 0 );        

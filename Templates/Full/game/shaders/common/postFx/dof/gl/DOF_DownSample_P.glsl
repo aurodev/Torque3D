@@ -47,6 +47,8 @@ in vec2 tcDepth2;
 in vec2 tcDepth3;
 #define IN_tcDepth3 tcDepth3
 
+out vec4 OUT_FragColor0;
+
 void main()
 {  
    //return vec4( 1.0, 0.0, 1.0, 1.0 );

@@ -32,6 +32,8 @@ uniform float distCoeff;
 uniform float cubeDistort;
 uniform vec3 colorDistort;
 
+out vec4 OUT_FragColor0;
+
 void main()
 {
     vec2 tex = IN_uv0;

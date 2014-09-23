@@ -34,6 +34,8 @@ uniform sampler2D causticsTex0;
 uniform sampler2D causticsTex1;
 uniform vec2 targetSize;
 
+out vec4 OUT_FragColor0;
+
 float distanceToPlane(vec4 plane, vec3 pos)
 {
    return (plane.x * pos.x + plane.y * pos.y + plane.z * pos.z) + plane.w;

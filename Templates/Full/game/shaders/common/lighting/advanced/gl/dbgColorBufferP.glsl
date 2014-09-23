@@ -20,13 +20,15 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "../../../gl/hlslCompat.glsl"
 #include "shadergen:/autogenConditioners.h"
-#include "shaders/common/gl/torque.glsl"
-#include "shaders/common/postFx/gl/postFx.glsl"
+#include "../../../gl/hlslCompat.glsl"
+#include "../../../postfx/gl/postFx.glsl"
 
 uniform sampler2D colorBufferTex;
+
+out vec4 OUT_FragColor0;
+
 void main()
-{     
-   OUT_FragColor0 = float4(tex2D( colorBufferTex, uv0 ).rgb, 1.0);   
+{ 
+   OUT_FragColor0 = vec4(texture( colorBufferTex, uv0 ).rgb, 1.0);   
 }

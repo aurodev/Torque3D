@@ -42,6 +42,8 @@ in vec2 uv6;
 in vec2 uv7;
 #define IN_uv7 uv7
 
+out vec4 OUT_FragColor0;
+
 #define OUT OUT_FragColor0
 
 uniform sampler2D diffuseMap;

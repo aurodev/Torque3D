@@ -28,7 +28,9 @@ in vec2 texCoord;
 #define IN_texCoord texCoord
 
 
-uniform sampler2D diffuseMap        ;
+uniform sampler2D diffuseMap;
+
+out vec4 OUT_FragColor0;
 
 void main()
 {

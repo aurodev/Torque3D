@@ -27,6 +27,8 @@
 uniform sampler2D shrunkSampler;  // Output of DofDownsample()  
 uniform sampler2D blurredSampler; // Blurred version of the shrunk sampler  
 
+out vec4 OUT_FragColor0;
+
 // This is the pixel shader function that calculates the actual  
 // value used for the near circle of confusion.  
 // "texCoords" are 0 at the bottom left pixel and 1 at the top right.  

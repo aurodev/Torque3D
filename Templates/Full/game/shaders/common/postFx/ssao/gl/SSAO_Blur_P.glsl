@@ -63,6 +63,8 @@ void _sample( vec2 uv, float weight, vec4 centerTap, inout int usedCount, inout 
    }   
 }
 
+out vec4 OUT_FragColor0;
+
 void main()
 {   
    //vec4 centerTap;

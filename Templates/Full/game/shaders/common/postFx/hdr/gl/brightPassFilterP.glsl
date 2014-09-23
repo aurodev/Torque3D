@@ -31,6 +31,8 @@ uniform vec2 oneOverTargetSize;
 uniform float brightPassThreshold;
 uniform float g_fMiddleGray;
 
+out vec4 OUT_FragColor0;
+
 const vec3 LUMINANCE_VECTOR = vec3(0.3125f, 0.6154f, 0.0721f);
 
 

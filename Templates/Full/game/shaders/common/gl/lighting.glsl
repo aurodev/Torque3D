@@ -20,7 +20,7 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "shaders/common/gl/torque.glsl"
+#include "./torque.glsl"
 
 #ifndef TORQUE_SHADERGEN
 
@@ -231,10 +231,10 @@ float AL_CalcSpecular( vec3 toLight, vec3 normal, vec3 toEye )
 ///
 vec4 AL_DeferredOutput(
 		vec3 	lightColor,
-        vec3  diffuseColor,
-        vec4 	matInfo,
-        vec4 	ambient,
-        float   specular, 
+                vec3  diffuseColor,
+                vec4 	matInfo,
+                vec4 	ambient,
+                float   specular, 
 		float 	specularMap, 
 		float 	shadowAttenuation)
 {

@@ -32,6 +32,8 @@ uniform sampler2D colorSampler;  // Output of DofNearCoc()
 in vec4 texCoords;
 #define IN_texCoords texCoords
 
+out vec4 OUT_FragColor0;
+
 void main()
 {  
    vec4 color;

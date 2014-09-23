@@ -28,6 +28,8 @@ uniform sampler2D edgeBuffer;
 uniform sampler2D backBuffer;
 uniform vec2 targetSize;
 
+out vec4 OUT_FragColor0;
+
 void main()
 {
    vec2 pixelSize = 1.0 / targetSize;

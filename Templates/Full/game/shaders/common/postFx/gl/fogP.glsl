@@ -34,6 +34,8 @@ uniform vec4    rtParams0;
 in vec2 uv0;
 in vec3 wsEyeRay;
 
+out vec4 OUT_FragColor0;
+
 void main()
 {   
    //vec2 prepassCoord = ( uv0.xy * rtParams0.zw ) + rtParams0.xy;   

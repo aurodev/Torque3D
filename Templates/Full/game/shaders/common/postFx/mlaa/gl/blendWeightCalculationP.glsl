@@ -36,6 +36,7 @@ uniform sampler2D areaMap;
 
 #include "./functions.glsl"
 
+out vec4 OUT_FragColor0;
 
 void main()
 {

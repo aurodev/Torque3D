@@ -28,6 +28,8 @@
 uniform sampler2D inputTex;
 uniform float brightPassThreshold;
 
+out vec4 OUT_FragColor0;
+
 void main()
 {
    vec4 _sample = hdrDecode( texture( inputTex, IN_uv0 ) );

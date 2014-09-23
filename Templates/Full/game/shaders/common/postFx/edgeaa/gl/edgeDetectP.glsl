@@ -88,6 +88,8 @@ in vec2 uv0;
 uniform sampler2D prepassBuffer;
 uniform vec2 targetSize;
 
+out vec4 OUT_FragColor0;
+
 void main()
 {
    OUT_FragColor0 = vec4( GetEdgeWeight(IN_uv0, prepassBuffer, targetSize ) );//rtWidthHeightInvWidthNegHeight.zw);

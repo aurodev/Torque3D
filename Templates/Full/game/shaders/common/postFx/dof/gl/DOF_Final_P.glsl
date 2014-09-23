@@ -34,6 +34,8 @@ uniform vec4 dofLerpBias;
 uniform vec3 dofEqFar;  
 uniform float maxFarCoC;
 
+out vec4 OUT_FragColor0;
+
 //static float d0 = 0.1;
 //static float d1 = 0.1;
 //static float d2 = 0.8;

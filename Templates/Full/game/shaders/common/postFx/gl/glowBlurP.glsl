@@ -34,6 +34,8 @@ in vec2 uv5; //TEXCOORD5;
 in vec2 uv6; //TEXCOORD6;
 in vec2 uv7; //TEXCOORD7;
 
+out vec4 OUT_FragColor0;
+
 void main()
 {
    vec4 kernel = vec4( 0.175, 0.275, 0.375, 0.475 ) * 0.5f;

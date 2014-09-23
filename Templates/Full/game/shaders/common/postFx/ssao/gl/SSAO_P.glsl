@@ -57,6 +57,7 @@ uniform float lDepthPow;
 uniform float lNormalTol;
 uniform float lNormalPow;
 
+out vec4 OUT_FragColor0;
 
 #ifndef QUALITY
    #define QUALITY 2
