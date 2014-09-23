@@ -22,29 +22,31 @@
 
 #include "../../../gl/hlslCompat.glsl"
 #include "shadergen:/autogenConditioners.h"
-#include "shaders/common/gl/torque.glsl"
-#include "shaders/common/postFx/gl/postFx.glsl"
+#include "../../../postfx/gl/postFx.glsl"
+#include "../../../gl/torque.glsl"
 
 uniform sampler2D colorBufferTex;
 uniform sampler2D lightPrePassTex;
 uniform sampler2D matInfoTex;
 
+out vec4 OUT_FragColor0;
+
 void main()
 {        
-   float4 lightBuffer = tex2D( lightPrePassTex, uv0 );
-   float4 colorBuffer = tex2D( colorBufferTex, uv0 );
-   float4 matInfo = tex2D( matInfoTex, uv0 );
+   vec4 lightBuffer = texture( lightPrePassTex, uv0 );
+   vec4 colorBuffer = texture( colorBufferTex, uv0 );
+   vec4 matInfo = texture( matInfoTex, uv0 );
    float specular = lightBuffer.a;
 
    // Diffuse Color Altered by Metalness
-   bool metalness = getFlag(matInfo.r, 3);
-   if ( metalness )
-   {
-	colorBuffer *= (1.0 - colorBuffer.a);
-   }
+   //bool metalness = getFlag(matInfo.r, 3);
+   //if ( metalness )
+   //{
+	//colorBuffer *= (1.0 - colorBuffer.a);
+   //}
 
-   colorBuffer += float4(specular, specular, specular, 1.0);
-   colorBuffer *= float4(lightBuffer.rgb, 1.0);
+   colorBuffer *= vec4(lightBuffer.rgb, 1.0);
+   colorBuffer += vec4(specular, specular, specular, 1.0);
 
    OUT_FragColor0 = hdrEncode( colorBuffer );
 }

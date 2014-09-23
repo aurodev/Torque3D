@@ -828,9 +828,9 @@ Var* ShaderFeatureGLSL::addOutDetailTexCoord(   Vector<ShaderComponent*> &compon
 //****************************************************************************
 
 DiffuseMapFeatGLSL::DiffuseMapFeatGLSL()
-   : mTorqueDep( "shaders/common/gl/torque.GLSL" )
+: mTorqueDep("shaders/common/gl/torque.glsl")
 {
-   addDependency( &mTorqueDep );
+	addDependency(&mTorqueDep);
 }
 
 void DiffuseMapFeatGLSL::processVert( Vector<ShaderComponent*> &componentList, 
@@ -1706,7 +1706,7 @@ void ReflectCubeFeatGLSL::processVert( Vector<ShaderComponent*> &componentList,
     cubeNormal->setType( "vec3" );
    LangElement *cubeNormDecl = new DecOp( cubeNormal );
 
-    meta->addStatement( new GenOp( "   @ = ( tMul( (@),  vec4(@, 0) ) ).xyz;\r\n",
+    meta->addStatement( new GenOp( "   @ = normalize(( tMul( (@),  vec4(@, 0) ) ).xyz);\r\n",
                        cubeNormDecl, cubeTrans, inNormal ) );
 
     // grab the eye position
@@ -1790,12 +1790,11 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    }
    else
    {
-       if (fd.features[MFT_DeferredDiffuseMap])
-       {
-           if (!glossColor)
-               glossColor = (Var*)LangElement::find( "col1" );
+      if (fd.features[MFT_DeferredDiffuseMap])
+      {
+        glossColor = (Var*)LangElement::find( "col1" );
            if (!fd.features[MFT_DeferredSpecStrength])
-           {
+        {
                meta->addStatement( new GenOp( "   @.a = 0.5;\r\n", glossColor) );
            } else {
                Var *specStrength = (Var*)LangElement::find( "specularStrength" );
@@ -1812,9 +1811,9 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
                else
                    meta->addStatement( new GenOp( "   @.a = @;\r\n", glossColor, specStrength ) );
                meta->addStatement( new GenOp( "   @ = saturate(@);\r\n", glossColor, glossColor));
-           }
-       }
-       else
+        }
+      }
+      else
       glossColor = (Var*) LangElement::find( "diffuseColor" );
       if( !glossColor )
          glossColor = (Var*) LangElement::find( "bumpNormal" );
@@ -1858,7 +1857,7 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    // Cube LOD level = (1.0 - Roughness) * 8
    // mip_levle =  min((1.0 - u_glossiness)*11.0 + 1.0, 8.0)
    //LangElement *texCube = new GenOp( "texCUBElod( @, vec4(@, min((1.0 - (@ / 128.0)) * 11.0 + 1.0, 8.0)) )", cubeMap, reflectVec, specPower );
-   LangElement *texCube = new GenOp( "texCUBElod( @, vec4(@, (@ / 128.0) * 8) )", cubeMap, reflectVec, specPower );
+   LangElement *texCube = new GenOp( "textureCubeLod( @, vec3(@), (@ / 128.0) * 8))", cubeMap, reflectVec, specPower );
 
    LangElement *lerpVal = NULL;
    Material::BlendOp blendOp = Material::LerpAlpha;
@@ -1883,7 +1882,7 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    if (fd.features[MFT_DeferredDiffuseMap])
        meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal, ShaderFeature::RenderTarget1 ) ) );
    else
-       meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal ) ) );         
+   meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal ) ) );         
    output = meta;
 }
 
@@ -1918,8 +1917,7 @@ void ReflectCubeFeatGLSL::setTexData(  Material::StageData &stageDat,
        !passData.mFeatureData.features[MFT_NormalMap] )
    {
       GFXTextureObject *tex = stageDat.getTex( MFT_DetailMap );
-      if (  tex &&
-            (stageFeatures.features[MFT_DiffuseMap] || stageFeatures.features[MFT_DeferredDiffuseMap]) )
+      if (  tex && (stageFeatures.features[MFT_DiffuseMap] || stageFeatures.features[MFT_DeferredDiffuseMap]) )
       {
          passData.mSamplerNames[ texIndex ] = "diffuseMap";
          passData.mTexSlot[ texIndex++ ].texObject = tex;
@@ -2415,7 +2413,7 @@ void AlphaTestGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    // If we don't have a color var then we cannot do an alpha test.
    Var *color = (Var*)LangElement::find( "col" );
    if ( !color )
-       color = (Var*)LangElement::find( "col1" );
+	   color = (Var*)LangElement::find("col1");
    if ( !color )
    {
       output = NULL;

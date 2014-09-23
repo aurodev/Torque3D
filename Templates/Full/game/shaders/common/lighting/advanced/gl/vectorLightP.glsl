@@ -41,10 +41,10 @@ uniform sampler2D ssaoMask ;
 uniform vec4 rtParams2;
 #endif
 
-uniform sampler2D prePassBuffer;             
+uniform sampler2D prePassBuffer;
 uniform sampler2D lightBuffer;
 uniform sampler2D colorBuffer;
-uniform sampler2D matInfoBuffer;
+uniform sampler2D matInfoBuffer;             
 uniform vec3 lightDirection;
 uniform vec4 lightColor;
 uniform float  lightBrightness;
@@ -66,6 +66,8 @@ uniform vec4 farPlaneScalePSSM;
 uniform vec4 overDarkPSSM;
 uniform float shadowSoftness;
 
+out vec4 OUT_FragColor0;
+
 void main()             
 {
    // Emissive.
@@ -73,7 +75,8 @@ void main()
    bool emissive = getFlag( matInfo.r, 0 );
    if ( emissive )
    {
-       return vec4(1.0, 1.0, 1.0, 0.0);
+       OUT_FragColor0 = vec4(1.0, 1.0, 1.0, 0.0);
+	   return;
    }
 
    // Sample/unpack the normal/z data
@@ -212,13 +215,13 @@ void main()
    
    float Sat_NL_Att = saturate( dotNL * shadowed ) * lightBrightness;
    vec3 lightColorOut = lightMapParams.rgb * lightColor.rgb;
-
+   
    // Felix' Normal Mapped Ambient.
-   float ambientBrightness = (float)lightAmbient;
-   vec3 worldNormal = normalize(mul(eyeMat, vec4(normal,1.0))).xyz;
+   float ambientBrightness = lightAmbient.r;
+   vec3 worldNormal = normalize(tMul(eyeMat, vec4(normal,1.0))).xyz;
    float ambientContrast = 0.5;  
-   vec4 upAmbient = mix( 1 - lightAmbient * 0.65, lightAmbient, 1-ambientBrightness*ambientContrast );
-   vec4 lightAmbientTwoTone = mix( lightAmbient * 0.8 , upAmbient , worldNormal.b ); 
+   vec4 upAmbient = lerp( 1 - lightAmbient * 0.65, lightAmbient, 1-ambientBrightness*ambientContrast );
+   vec4 lightAmbientTwoTone = lerp( lightAmbient * 0.8 , upAmbient , worldNormal.b ); 
    vec4 addToResult = lightAmbientTwoTone + dotNL * lightColor * ambientBrightness * 0.25; 
 
    //vec4 addToResult = lightAmbient;
@@ -252,18 +255,18 @@ void main()
    if ( translucent && matInfo.g > 0.1 )
    {
       float fLTDistortion = 0.1;
-      int iLTPower = 10;
+      float iLTPower = 10;
       float fLTAmbient = 0.0;
       float fLTThickness = matInfo.g;
       float fLTScale = 0.5;
-
       vec3 vLTLight = lightDirection + normal * fLTDistortion;
-      float fLTDot = pow(saturate(dot(normalize(IN.vsEyeRay), -vLTLight)), iLTPower) * fLTScale;
-      vec3 fLT = 1.0 * (fLTDot + fLTAmbient) * fLTThickness;
+      float fLTDot = pow(clamp(dot(normalize(vsEyeRay), -vLTLight), 0.0, 1.0), iLTPower) * fLTScale;
+      vec3 fLT = vec3(1.0 * (fLTDot + fLTAmbient) * fLTThickness);
 
       addToResult = lightColor * vec4( fLT, 0.0);
    }
-   
+
    vec4 colorSample = texture( colorBuffer, uv0 );
-   return AL_DeferredOutput(lightColorOut, colorSample.rgb, matInfo, addToResult, specular, colorSample.a, Sat_NL_Att);
+   OUT_FragColor0 = AL_DeferredOutput(lightColorOut, colorSample.rgb, matInfo, addToResult, specular, colorSample.a, Sat_NL_Att);
+   
 }

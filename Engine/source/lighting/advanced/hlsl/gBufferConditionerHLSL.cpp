@@ -19,8 +19,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
-
-#include "platform/platform.h"
+//MGT: mac code changes
+#include <platform/platform.h>
+//MGT:end
 #include "lighting/advanced/hlsl/gBufferConditionerHLSL.h"
 
 #include "shaderGen/featureMgr.h"
@@ -164,7 +165,7 @@ void GBufferConditionerHLSL::processPix(  Vector<ShaderComponent*> &componentLis
    if ( fd.features[ MFT_IsTranslucentZWrite ] )
    {
       alphaVal = new Var( "outAlpha", "float" );
-      meta->addStatement( new GenOp( "   @ = OUT.col.a; // MFT_IsTranslucentZWrite\r\n", new DecOp( alphaVal ) ) );
+      meta->addStatement( new GenOp( "   @ = OUT.col1.a; // MFT_IsTranslucentZWrite\r\n", new DecOp( alphaVal ) ) );
    }
 
    // If using interlaced normals, invert the normal
@@ -333,7 +334,7 @@ Var* GBufferConditionerHLSL::_conditionOutput( Var *unconditionedOutput, MultiLi
    // Encode depth into two channels
    if(mNormalStorageType != CartesianXYZ)
    {
-      const U64 maxValPerChannel = (U64)1 << mBitsPerChannel;
+      const U64 maxValPerChannel = 1 << mBitsPerChannel;
       meta->addStatement( new GenOp( "   \r\n   // Encode depth into hi/lo\r\n" ) );
       meta->addStatement( new GenOp( avar( "   float2 _tempDepth = frac(@.a * float2(1.0, %llu.0));\r\n", maxValPerChannel - 1 ), 
          unconditionedOutput ) );
@@ -391,7 +392,7 @@ Var* GBufferConditionerHLSL::_unconditionInput( Var *conditionedInput, MultiLine
    // Recover depth from encoding
    if(mNormalStorageType != CartesianXYZ)
    {
-      const U64 maxValPerChannel = (U64)1 << mBitsPerChannel;
+      const U64 maxValPerChannel = 1 << mBitsPerChannel;
       meta->addStatement( new GenOp( "   \r\n   // Decode depth\r\n" ) );
       meta->addStatement( new GenOp( avar( "   @.w = dot( @.zw, float2(1.0, 1.0/%llu.0));\r\n", maxValPerChannel - 1 ), 
          retVar, conditionedInput ) );

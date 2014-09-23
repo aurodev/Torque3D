@@ -36,8 +36,11 @@ new GFXStateBlockData( AL_VectorLightState )
 
    samplersDefined = true;
    samplerStates[0] = SamplerClampPoint;  // G-buffer
+   mSamplerNames[0] = "prePassBuffer";
    samplerStates[1] = SamplerClampPoint;  // Shadow Map (Do not change this to linear, as all cards can not filter equally.)
+   mSamplerNames[1] = "ShadowMap";
    samplerStates[2] = SamplerClampLinear;  // SSAO Mask
+   mSamplerNames[2] = "ssaoMask";
    samplerStates[3] = SamplerWrapPoint;   // Random Direction Map
    
    cullDefined = true;
@@ -65,9 +68,9 @@ new ShaderData( AL_VectorLightShader )
    samplerNames[1] = "$ShadowMap";
    samplerNames[2] = "$ssaoMask";
    samplerNames[3] = "$gTapRotationTex";
-   samplerNames[4] = "$lightBuffer";
-   samplerNames[5] = "$colorBuffer";
-   samplerNames[6] = "$matInfoBuffer";
+   samplerNames[5] = "$lightBuffer";
+   samplerNames[6] = "$colorBuffer";
+   samplerNames[7] = "$matInfoBuffer";
    
    pixVersion = 3.0;
 };
@@ -79,7 +82,7 @@ new CustomMaterial( AL_VectorLightMaterial )
    
    sampler["prePassBuffer"] = "#prepass";
    sampler["ShadowMap"] = "$dynamiclight";
-   sampler["ssaoMask"] = "#ssaoMask";
+   sampler["ssaoMask"] = "#ssaoMask";  
    sampler["lightBuffer"] = "#lightinfo";
    sampler["colorBuffer"] = "#color";
    sampler["matInfoBuffer"] = "#matinfo";
@@ -107,7 +110,9 @@ new GFXStateBlockData( AL_ConvexLightState )
 
    samplersDefined = true;
    samplerStates[0] = SamplerClampPoint;  // G-buffer
+   mSamplerNames[0] = "prePassBuffer";
    samplerStates[1] = SamplerClampPoint;  // Shadow Map (Do not use linear, these are perspective projections)
+   mSamplerNames[1] = "shadowMap";
    samplerStates[2] = SamplerClampLinear; // Cookie Map   
    samplerStates[3] = SamplerWrapPoint;   // Random Direction Map
    
@@ -136,9 +141,9 @@ new ShaderData( AL_PointLightShader )
    samplerNames[1] = "$shadowMap";
    samplerNames[2] = "$cookieMap";
    samplerNames[3] = "$gTapRotationTex";
-   samplerNames[4] = "$lightBuffer";
-   samplerNames[5] = "$colorBuffer";
-   samplerNames[6] = "$matInfoBuffer";
+   samplerNames[5] = "$lightBuffer";
+   samplerNames[6] = "$colorBuffer";
+   samplerNames[7] = "$matInfoBuffer";
    
    pixVersion = 3.0;
 };
@@ -172,10 +177,10 @@ new ShaderData( AL_SpotLightShader )
    samplerNames[0] = "$prePassBuffer";
    samplerNames[1] = "$shadowMap";
    samplerNames[2] = "$cookieMap";
-   samplerNames[3] = "$gTapRotationTex";
-   samplerNames[4] = "$lightBuffer";
-   samplerNames[5] = "$colorBuffer";
-   samplerNames[6] = "$matInfoBuffer";
+   samplerNames[3] = "$gTapRotationTex";   
+   samplerNames[5] = "$lightBuffer";
+   samplerNames[6] = "$colorBuffer";
+   samplerNames[7] = "$matInfoBuffer";  
    
    pixVersion = 3.0;
 };

@@ -28,7 +28,7 @@
 #include "../../../gl/lighting.glsl"
 #include "../../shadowMap/shadowMapIO_GLSL.h"
 #include "softShadow.glsl"
-#include "shaders/common/gl/torque.glsl"
+#include "../../../gl/torque.glsl"
 
 in vec4 wsEyeDir;
 in vec4 ssPos;
@@ -127,21 +127,24 @@ uniform vec4 vsFarPlane;
 uniform mat3 viewToLightProj;
 uniform vec4 lightParams;
 uniform float shadowSoftness;
+			   
+out vec4 OUT_FragColor0;
 
-void main()
+void main()               
 {   
    // Compute scene UV
    vec3 ssPos = ssPos.xyz / ssPos.w;
    vec2 uvScene = getUVFromSSPos( ssPos, rtParams0 );
    
    // Emissive.
-   vec4 matInfo = tex2D( matInfoBuffer, uvScene );   
+   vec4 matInfo = texture( matInfoBuffer, uvScene );   
    bool emissive = getFlag( matInfo.r, 0 );
    if ( emissive )
    {
-       return vec4(0.0, 0.0, 0.0, 0.0);
+       OUT_FragColor0 = vec4(0.0, 0.0, 0.0, 0.0);
+	   return;
    }
-   
+
    // Sample/unpack the normal/z data
    vec4 prepassSample = prepassUncondition( prePassBuffer, uvScene );
    vec3 normal = prepassSample.rgb;
@@ -252,12 +255,12 @@ void main()
       float fLTScale = 1.0;
 
       vec3 vLTLight = lightVec + normal * fLTDistortion;
-      float fLTDot = pow(saturate(dot(-vsEyeDir.xyz, -vLTLight)), iLTPower) * fLTScale;
+      float fLTDot = pow(clamp(dot(-IN.vsEyeDir.xyz, -vLTLight),0.0,1.0), iLTPower) * fLTScale;
       vec3 fLT = atten * (fLTDot + fLTAmbient) * fLTThickness;
 
       addToResult = lightColor * vec4( fLT, 0.0);
    }
 
-   vec4 colorSample = tex2D( colorBuffer, uvScene );
+   vec4 colorSample = texture( colorBuffer, uvScene );
    OUT_FragColor0 = AL_DeferredOutput(lightColorOut, colorSample.rgb, matInfo, addToResult, specular, colorSample.a, Sat_NL_Att);
 }

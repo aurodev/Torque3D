@@ -2,7 +2,7 @@ singleton ShaderData( ClearGBufferShader )
 {
    DXVertexShaderFile = "shaders/common/postFx/postFxV.hlsl";
    DXPixelShaderFile  = "shaders/common/lighting/advanced/deferredClearGBufferP.hlsl";
-   
+
    OGLVertexShaderFile = "shaders/common/postFx/gl/postFxV.glsl";
    OGLPixelShaderFile  = "shaders/common/lighting/advanced/gl/deferredClearGBufferP.glsl";
 
@@ -22,7 +22,7 @@ singleton ShaderData( DeferredColorShader )
 
 // Primary Deferred Shader
 new GFXStateBlockData( AL_DeferredShadingState : PFX_DefaultStateBlock )
-{
+{  
    cullMode = GFXCullNone;
    
    samplersDefined = true;
@@ -96,9 +96,9 @@ function toggleColorBufferViz( %enable )
    }
    else if ( !%enable )
    {
-      AL_ColorBufferVisualize.disable();
+      AL_ColorBufferVisualize.disable();    
       AL_DeferredShading.enable();
-   }   
+   }
 }
 
 new ShaderData( AL_SpecMapShader )
@@ -106,7 +106,10 @@ new ShaderData( AL_SpecMapShader )
    DXVertexShaderFile = "shaders/common/postFx/postFxV.hlsl";
    DXPixelShaderFile  = "shaders/common/lighting/advanced/dbgSpecMapVisualizeP.hlsl";
 
-   samplerNames[0] = "color";
+   OGLVertexShaderFile = "shaders/common/postFx/gl/postFxV.glsl";
+   OGLPixelShaderFile  = "shaders/common/lighting/advanced/gl/dbgSpecMapVisualizeP.glsl";
+
+   samplerNames[0] = "colorBufferTex";
    pixVersion = 2.0;
 };
 

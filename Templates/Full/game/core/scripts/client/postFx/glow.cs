@@ -32,6 +32,7 @@ singleton ShaderData( PFX_GlowBlurVertShader )
    defines = "BLUR_DIR=float2(0.0,1.0)";
 
    samplerNames[0] = "$diffuseMap";
+   samplerNames[1] = "$prepassTex";
          
    pixVersion = 2.0;
 };
@@ -85,6 +86,7 @@ singleton PostEffect( GlowPostFx )
       shader = PFX_GlowBlurVertShader;
       stateBlock = PFX_DefaultStateBlock;
       texture[0] = "$inTex";
+      texture[1] = "#prepass";
       target = "$outTex";
    };
    
@@ -94,6 +96,7 @@ singleton PostEffect( GlowPostFx )
       shader = PFX_GlowBlurHorzShader;
       stateBlock = PFX_DefaultStateBlock;
       texture[0] = "$inTex";
+      texture[1] = "#prepass";
       target = "$outTex";
    };
             

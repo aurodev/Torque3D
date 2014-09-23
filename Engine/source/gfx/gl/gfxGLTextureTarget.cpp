@@ -157,25 +157,42 @@ _GFXGLTextureTargetFBOImpl::~_GFXGLTextureTargetFBOImpl()
 }
 
 void _GFXGLTextureTargetFBOImpl::applyState()
-{   
+{  
    // REMINDER: When we implement MRT support, check against GFXGLDevice::getNumRenderTargets()
    
    PRESERVE_FRAMEBUFFER();
    glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
-
+ 
+   bool drawbufs[16];
+   int bufsize = 0;
+   for (int i = 0; i < 16; i++)
+           drawbufs[i] = false;
+ 
    bool hasColor = false;
    for(int i = 0; i < GFXGL->getNumRenderTargets(); ++i)
-   {   
+   {  
       _GFXGLTargetDesc* color = mTarget->getTargetDesc( static_cast<GFXTextureTarget::RenderSlot>(GFXTextureTarget::Color0+i ));
-      if(color)
-      {
-         hasColor = true;
-         if( color->getBinding( ) == GL_TEXTURE_2D )
-            glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, color->getBinding( ), color->getHandle( ), color->getMipLevel( ) );
-         else if( color->getBinding( ) == GL_TEXTURE_1D )
-            glFramebufferTexture1D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, color->getBinding( ), color->getHandle( ), color->getMipLevel( ) );
-         else if( color->getBinding( ) == GL_TEXTURE_3D )
-            glFramebufferTexture3D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, color->getBinding( ), color->getHandle( ), color->getMipLevel( ), color->getZOffset( ) );
+          if (color)
+          {
+                  hasColor = true;
+                  if (color->getBinding() == GL_TEXTURE_2D)
+                  {
+                          glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, color->getBinding(), color->getHandle(), color->getMipLevel());
+                          drawbufs[i] = true;
+                          bufsize++;
+                  }
+                  else if (color->getBinding() == GL_TEXTURE_1D)
+                  {
+                          glFramebufferTexture1D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, color->getBinding(), color->getHandle(), color->getMipLevel());
+                          drawbufs[i] = true;
+                          bufsize++;
+                  }
+                  else if (color->getBinding() == GL_TEXTURE_3D)
+                  {
+                          glFramebufferTexture3D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, color->getBinding(), color->getHandle(), color->getMipLevel(), color->getZOffset());
+                          drawbufs[i] = true;
+                          bufsize++;
+                  }
       }
       else
       {
@@ -196,7 +213,23 @@ void _GFXGLTextureTargetFBOImpl::applyState()
       // Clears the texture (note that the binding is irrelevent)
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
    }
-
+ 
+ 
+   GLenum *buf = new GLenum[bufsize];
+   int count = 0;
+   for (int i = 0; i < bufsize; i++)
+   {
+           if (drawbufs[i])
+           {
+                   buf[count] = GL_COLOR_ATTACHMENT0 + i;
+                   count++;
+           }
+   }
+ 
+   glDrawBuffers(bufsize, buf);
+ 
+   delete[] buf;
+ 
    CHECK_FRAMEBUFFER_STATUS();
 }
 
