@@ -19,22 +19,22 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
-#include "../../../gl/hlslCompat.glsl"
 
-layout(location = 0) out float4 col;
-layout(location = 1) out float4 col1;
-layout(location = 2) out float4 col2;
+layout (location = 0) out vec4 col;
+layout (location = 1) out vec4 col1;
+layout (location = 2) out vec4 col2;
+
 //-----------------------------------------------------------------------------
 // Main                                                                        
 //-----------------------------------------------------------------------------
-void main( )
-{   
+void main()
+{    
    // Clear Prepass Buffer ( Normals/Depth );
-   col =  float4(1.0, 1.0, 1.0, 1.0);
+   col =  vec4(1.0, 1.0, 1.0, 1.0);
 
    // Clear Color Buffer.
-   col1 = float4(0.0, 0.0, 0.0, 1.0);
+   col1 = vec4(0.0, 0.0, 0.0, 1.0);
 
    // Clear Material Info Buffer.
-   col2 = float4(0.0, 0.0, 0.0, 1.0);
+   col2 = vec4(0.0, 0.0, 0.0, 1.0);
 }

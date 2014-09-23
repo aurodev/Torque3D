@@ -20,20 +20,18 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "../../../gl/hlslCompat.glsl"
+layout (location = 0) out vec4 col;
+layout (location = 1) out vec4 col1;
+layout (location = 2) out vec4 col2;
 
-layout(location = 0) out float4 col;
-layout(location = 1) out float4 col1;
-layout(location = 2) out float4 col2;
 //-----------------------------------------------------------------------------
 // Main                                                                        
 //-----------------------------------------------------------------------------
-void main( )
-{
-   
-   col =  float4(0.0, 0.0, 0.0, 0.0);
-   col1 = float4(1.0, 1.0, 1.0, 1.0);
+void main()
+{    
+   col =  vec4(0.0, 0.0, 0.0, 0.0);
+   col1 = vec4(1.0, 1.0, 1.0, 1.0);
 
    // Draw on color buffer.
-   col2 = float4(1.0, 0.0, 0.0, 1.0);
+   col2 = vec4(1.0, 0.0, 0.0, 1.0);
 }
