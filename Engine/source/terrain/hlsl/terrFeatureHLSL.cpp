@@ -31,15 +31,16 @@
 #include "shaderGen/langElement.h"
 #include "shaderGen/shaderOp.h"
 #include "shaderGen/featureMgr.h"
+#include "shaderGen/shaderGen.h"
 #include "core/module.h"
 
-
-MODULE_BEGIN( TerrainFeatHLSL )
-
-   MODULE_INIT_AFTER( ShaderGenFeatureMgr )
-
-   MODULE_INIT
+namespace 
+{
+   void register_hlsl_shader_features_for_terrain(GFXAdapterType type)
    {
+      if(type != Direct3D9 && type != Direct3D9_360)
+         return;
+
       FEATUREMGR->registerFeature( MFT_TerrainBaseMap, new TerrainBaseMapFeatHLSL );
       FEATUREMGR->registerFeature( MFT_TerrainParallaxMap, new NamedFeatureHLSL( "Terrain Parallax Texture" ) );   
       FEATUREMGR->registerFeature( MFT_TerrainDetailMap, new TerrainDetailMapFeatHLSL );
@@ -51,6 +52,16 @@ MODULE_BEGIN( TerrainFeatHLSL )
       FEATUREMGR->registerFeature( MFT_DeferredTerrainBaseMap, new TerrainBaseMapFeatHLSL );
       FEATUREMGR->registerFeature( MFT_DeferredTerrainMacroMap, new TerrainMacroMapFeatHLSL );
       FEATUREMGR->registerFeature( MFT_DeferredTerrainDetailMap, new TerrainDetailMapFeatHLSL );
+   }
+};
+
+MODULE_BEGIN( TerrainFeatHLSL )
+
+   MODULE_INIT_AFTER( ShaderGen )
+
+   MODULE_INIT
+   {
+       SHADERGEN->getFeatureInitSignal().notify(&register_hlsl_shader_features_for_terrain);
    }
 
 MODULE_END;

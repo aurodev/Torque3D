@@ -536,7 +536,7 @@ void DeferredTranslucencyEmptyGLSL::processPix( Vector<ShaderComponent*> &compon
       color->setType( "vec4" );
       color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
    }
-   output = new GenOp( "   @.g = 0.0;\r\n", new DecOp(color) );
+   output = new GenOp( "   @.g = 0.0;\r\n", color );
    
 }
 

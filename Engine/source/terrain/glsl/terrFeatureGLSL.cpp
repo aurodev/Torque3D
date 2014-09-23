@@ -48,6 +48,9 @@ namespace
       FEATUREMGR->registerFeature( MFT_TerrainLightMap, new TerrainLightMapFeatGLSL );
       FEATUREMGR->registerFeature( MFT_TerrainSideProject, new NamedFeatureGLSL( "Terrain Side Projection" ) );
       FEATUREMGR->registerFeature( MFT_TerrainAdditive, new TerrainAdditiveFeatGLSL );     
+      FEATUREMGR->registerFeature( MFT_DeferredTerrainBaseMap, new TerrainBaseMapFeatGLSL );
+      FEATUREMGR->registerFeature( MFT_DeferredTerrainMacroMap, new TerrainMacroMapFeatGLSL );
+      FEATUREMGR->registerFeature( MFT_DeferredTerrainDetailMap, new TerrainDetailMapFeatGLSL );
    }
 
 };
