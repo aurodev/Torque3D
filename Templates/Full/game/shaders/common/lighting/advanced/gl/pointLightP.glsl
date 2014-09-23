@@ -255,8 +255,8 @@ void main()
       float fLTScale = 1.0;
 
       vec3 vLTLight = lightVec + normal * fLTDistortion;
-      float fLTDot = pow(clamp(dot(-IN.vsEyeDir.xyz, -vLTLight),0.0,1.0), iLTPower) * fLTScale;
-      vec3 fLT = atten * (fLTDot + fLTAmbient) * fLTThickness;
+      float fLTDot = pow(clamp(dot(-vsEyeDir.xyz, -vLTLight),0.0,1.0), iLTPower) * fLTScale;
+      vec3 fLT = vec3(atten * (fLTDot + fLTAmbient) * fLTThickness);
 
       addToResult = lightColor * vec4( fLT, 0.0);
    }
