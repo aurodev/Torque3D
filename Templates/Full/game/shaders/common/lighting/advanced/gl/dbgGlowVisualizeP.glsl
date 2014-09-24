@@ -20,8 +20,8 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "shadergen:/autogenConditioners.h"
 #include "../../../gl/hlslCompat.glsl"
+#include "shadergen:/autogenConditioners.h"
 #include "../../../postfx/gl/postFx.glsl"
 
 uniform sampler2D glowBuffer;
@@ -30,5 +30,5 @@ out vec4 OUT_FragColor0;
 
 void main()
 { 
-   OUT_FragColor0 = texture(glowBuffer, IN.uv0); 
+   OUT_FragColor0 = texture(glowBuffer, uv0);
 }

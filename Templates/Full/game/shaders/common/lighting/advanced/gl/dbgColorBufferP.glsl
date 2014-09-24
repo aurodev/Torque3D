@@ -20,8 +20,8 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "shadergen:/autogenConditioners.h"
 #include "../../../gl/hlslCompat.glsl"
+#include "shadergen:/autogenConditioners.h"
 #include "../../../postfx/gl/postFx.glsl"
 
 uniform sampler2D colorBufferTex;
