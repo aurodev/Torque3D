@@ -245,7 +245,9 @@ function HDRPostFX::onEnabled( %this )
    GammaPostFX.disable();
    
    // Set the right global shader define for HDR.
-   if ( %format $= "GFXFormatR16G16B16A16" )
+   if ( %format $= "GFXFormatR10G10B10A2" )
+      addGlobalShaderMacro( "TORQUE_HDR_RGB10" );
+   else if ( %format $= "GFXFormatR16G16B16A16" )
       addGlobalShaderMacro( "TORQUE_HDR_RGB16" );
                         
    echo( "HDR FORMAT: " @ %format );
