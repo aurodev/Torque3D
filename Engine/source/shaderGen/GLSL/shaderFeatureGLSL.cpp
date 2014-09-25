@@ -155,10 +155,10 @@ LangElement *ShaderFeatureGLSL::expandNormalMap(   LangElement *sampleNormalOp,
       }
       else
       {
-      // DXT Swizzle trick
-         meta->addStatement( new GenOp( "   @ = float4( @.ag * 2.0 - 1.0, 0.0, 0.0 ); // DXTnm\r\n", normalDecl, sampleNormalOp ) );
-      meta->addStatement( new GenOp( "   @.z = sqrt( 1.0 - dot( @.xy, @.xy ) );  // DXTnm\r\n", normalVar, normalVar, normalVar ) );      
-   }
+          // DXT Swizzle trick
+          meta->addStatement( new GenOp( "   @ = float4( @.ag * 2.0 - 1.0, 0.0, 0.0 ); // DXTnm\r\n", normalDecl, sampleNormalOp ) );
+          meta->addStatement( new GenOp( "   @.z = sqrt( 1.0 - dot( @.xy, @.xy ) );  // DXTnm\r\n", normalVar, normalVar, normalVar ) );    
+      }
    }
    else
    {
@@ -1857,7 +1857,7 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    // Cube LOD level = (1.0 - Roughness) * 8
    // mip_levle =  min((1.0 - u_glossiness)*11.0 + 1.0, 8.0)
    //LangElement *texCube = new GenOp( "texCUBElod( @, vec4(@, min((1.0 - (@ / 128.0)) * 11.0 + 1.0, 8.0)) )", cubeMap, reflectVec, specPower );
-   LangElement *texCube = new GenOp( "textureCubeLod( @, vec3(@), (@ / 128.0) * 8))", cubeMap, reflectVec, specPower );
+   LangElement *texCube = new GenOp( "textureCubeLod( @, vec3(@), (@ / 128.0) * 8)", cubeMap, reflectVec, specPower );
 
    LangElement *lerpVal = NULL;
    Material::BlendOp blendOp = Material::LerpAlpha;
