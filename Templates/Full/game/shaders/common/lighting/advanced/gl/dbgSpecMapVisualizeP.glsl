@@ -19,8 +19,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
-#include "shadergen:/autogenConditioners.h"
 #include "../../../gl/hlslCompat.glsl"
+#include "shadergen:/autogenConditioners.h"
 #include "../../../postfx/gl/postFx.glsl"
 
 uniform sampler2D colorBufferTex;
