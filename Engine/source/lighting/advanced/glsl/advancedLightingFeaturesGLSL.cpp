@@ -532,6 +532,7 @@ void DeferredMinnaertGLSL::setTexData( Material::StageData &stageDat,
       if ( texTarget )
       {
          passData.mTexType[ texIndex ] = Material::TexTarget;
+         passData.mSamplerNames[ texIndex ] = "prepassBuffer";
          passData.mTexSlot[ texIndex++ ].texTarget = texTarget;
       }
    }

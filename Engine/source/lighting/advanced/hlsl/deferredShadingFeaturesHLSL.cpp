@@ -267,7 +267,7 @@ void DeferredSpecMapHLSL::setTexData(   Material::StageData &stageDat,
    if ( tex )
    {
       passData.mTexType[ texIndex ] = Material::Standard;
-      passData.mSamplerNames[ texIndex ] = "deferredSpecMapHLSL";
+      passData.mSamplerNames[ texIndex ] = "specularMap";
       passData.mTexSlot[ texIndex++ ].texObject = tex;
    }
 }
@@ -496,7 +496,7 @@ void DeferredTranslucencyMapHLSL::setTexData(   Material::StageData &stageDat,
    if ( tex )
    {
       passData.mTexType[ texIndex ] = Material::Standard;
-      passData.mSamplerNames[ texIndex ] = "deferredTranslucencyMap";
+      passData.mSamplerNames[ texIndex ] = "translucencyMap";
       passData.mTexSlot[ texIndex++ ].texObject = tex;
    }
 }
