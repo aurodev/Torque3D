@@ -36,7 +36,7 @@ void main()
    vec4 lightBuffer = texture( lightPrePassTex, uv0 );
    vec4 colorBuffer = texture( colorBufferTex, uv0 );
    vec4 matInfo = texture( matInfoTex, uv0 );
-   float specular = lightBuffer.a;
+   float specular = clamp(lightBuffer.a,0.0,1.0);
 
    // Diffuse Color Altered by Metalness
    //bool metalness = getFlag(matInfo.r, 3);
