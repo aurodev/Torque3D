@@ -84,13 +84,24 @@ void loadGLExtensions(void *context)
 void STDCALL glDebugCallback(GLenum source, GLenum type, GLuint id,
    GLenum severity, GLsizei length, const GLchar* message, void* userParam)
 {
-   Con::errorf("OPENGL: %s", message);
+    if (severity == GL_DEBUG_SEVERITY_HIGH)
+        Con::errorf("OPENGL: %s", message);
+    else if (severity == GL_DEBUG_SEVERITY_MEDIUM)
+        Con::warnf("OPENGL: %s", message);
+    else if (severity == GL_DEBUG_SEVERITY_LOW)
+        Con::printf("OPENGL: %s", message);
+
 }
 
 void STDCALL glAmdDebugCallback(GLuint id, GLenum category, GLenum severity, GLsizei length,
    const GLchar* message,GLvoid* userParam)
 {
-   Con::errorf("OPENGL: %s",message);
+    if (severity == GL_DEBUG_SEVERITY_HIGH)
+        Con::errorf("AMDOPENGL: %s", message);
+    else if (severity == GL_DEBUG_SEVERITY_MEDIUM)
+        Con::warnf("AMDOPENGL: %s", message);
+    else if (severity == GL_DEBUG_SEVERITY_LOW)
+        Con::printf("AMDOPENGL: %s", message);
 }
 
 void GFXGLDevice::initGLState()
