@@ -354,8 +354,8 @@ void ParallaxFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    }
    else
    {
-   meta->addStatement( new GenOp( "   @.xy += parallaxOffset( @, @.xy, @, @ );\r\n", 
-      texCoord, normalMap, texCoord, negViewTS, parallaxInfo ) );
+        meta->addStatement( new GenOp( "   @.xy += parallaxOffset( @, @.xy, @, @ );\r\n", 
+            texCoord, normalMap, texCoord, negViewTS, parallaxInfo ) );
    }
    
    // TODO: Fix second UV maybe?

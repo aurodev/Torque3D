@@ -488,7 +488,7 @@ void TerrainDetailMapFeatHLSL::processPix(   Vector<ShaderComponent*> &component
       {
          meta->addStatement( new GenOp( "   @.xy += parallaxOffsetDxtnm( @, @.xy, @, @.z * @ );\r\n", 
          inDet, normalMap, inDet, negViewTS, detailInfo, detailBlend ) );
-   }
+      }
       else
       {
          meta->addStatement( new GenOp( "   @.xy += parallaxOffset( @, @.xy, @, @.z * @ );\r\n", 
