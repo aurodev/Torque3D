@@ -37,7 +37,7 @@
 #include "gfx/util/screenspace.h"
 #include "lighting/advanced/advancedLightBinManager.h"
 
-S32 sgMaxTerrainMaterialsPerPass = 12;
+S32 sgMaxTerrainMaterialsPerPass = 8;
 
 AFTER_MODULE_INIT( MaterialManager )
 {
@@ -317,7 +317,7 @@ bool TerrainCellMaterial::_createPass( Vector<MaterialInfo*> *materials,
    // shader generation failures and permutations leading to
    // faster load time and less hiccups during gameplay.
    // note that at time of writing, most heightmap based engines push around 8,
-   // so we'll cap at 12 for safeties sake
+   // so we'll cap there for safeties sake
    U32 matCount = getMin( sgMaxTerrainMaterialsPerPass, materials->size() );
 
    Vector<GFXTexHandle> normalMaps;
