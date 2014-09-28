@@ -474,7 +474,7 @@ void TerrainDetailMapFeatHLSL::processPix(   Vector<ShaderComponent*> &component
    }
 
    // Add to the blend total.
-   meta->addStatement( new GenOp( "   @ = max( @, @ );\r\n", blendTotal, blendTotal, detailBlend ) );
+   meta->addStatement( new GenOp( "   @ += @;\r\n", blendTotal, detailBlend ) );
 
    // If we had a parallax feature... then factor in the parallax
    // amount so that it fades out with the layer blending.
@@ -764,7 +764,7 @@ void TerrainMacroMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentL
    }
 
    // Add to the blend total.
-   meta->addStatement( new GenOp( "   @ = max( @, @ );\r\n", blendTotal, blendTotal, detailBlend ) );
+   meta->addStatement( new GenOp( "   @ += @;\r\n", blendTotal, detailBlend ) );
 
    Var *detailColor = (Var*)LangElement::find( "macroColor" ); 
    if ( !detailColor )
