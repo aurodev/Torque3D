@@ -159,24 +159,32 @@ bool RenderPrePassMgr::_updateTargets()
    //If independent bit depth on a MRT is supported than just use 8bit channels for the albedo color.
    if(independentMrtBitDepth)
       colorFormat = GFXFormatR8G8B8A8;
-
+   
    // andrewmac: Deferred Shading Color Buffer
-   mColorTarget.release();
-   mColorTex.set( mTargetSize.x, mTargetSize.y, colorFormat,
-            &GFXDefaultRenderTargetProfile, avar( "%s() - (line %d)", __FUNCTION__, __LINE__ ),
-            1, GFXTextureManager::AA_MATCH_BACKBUFFER );
-   mColorTarget.setTexture(mColorTex);
-         for ( U32 i = 0; i < mTargetChainLength; i++ )
-      mTargetChain[i]->attachTexture(GFXTextureTarget::Color1, mColorTarget.getTexture());
-
+   if (mColorTex.getFormat() != colorFormat || mColorTex.getWidthHeight() != mTargetSize)
+   {
+           mColorTarget.release();
+           mColorTex.set(mTargetSize.x, mTargetSize.y, colorFormat,
+                   &GFXDefaultRenderTargetProfile, avar("%s() - (line %d)", __FUNCTION__, __LINE__),
+                   1, GFXTextureManager::AA_MATCH_BACKBUFFER);
+           mColorTarget.setTexture(mColorTex);
+ 
+           for (U32 i = 0; i < mTargetChainLength; i++)
+                   mTargetChain[i]->attachTexture(GFXTextureTarget::Color1, mColorTarget.getTexture());
+   }
+ 
    // andrewmac: Deferred Shading Material Info Buffer
-   mMatInfoTarget.release();
-   mMatInfoTex.set( mTargetSize.x, mTargetSize.y, colorFormat,
-            &GFXDefaultRenderTargetProfile, avar( "%s() - (line %d)", __FUNCTION__, __LINE__ ),
-            1, GFXTextureManager::AA_MATCH_BACKBUFFER );
-   mMatInfoTarget.setTexture(mMatInfoTex);
-   for ( U32 i = 0; i < mTargetChainLength; i++ )
-      mTargetChain[i]->attachTexture(GFXTextureTarget::Color2, mMatInfoTarget.getTexture());
+   if (mMatInfoTex.getFormat() != colorFormat || mMatInfoTex.getWidthHeight() != mTargetSize)
+   {
+                mMatInfoTarget.release();
+                mMatInfoTex.set(mTargetSize.x, mTargetSize.y, colorFormat,
+                        &GFXDefaultRenderTargetProfile, avar("%s() - (line %d)", __FUNCTION__, __LINE__),
+                        1, GFXTextureManager::AA_MATCH_BACKBUFFER);
+                mMatInfoTarget.setTexture(mMatInfoTex);
+ 
+                for (U32 i = 0; i < mTargetChainLength; i++)
+                        mTargetChain[i]->attachTexture(GFXTextureTarget::Color2, mMatInfoTarget.getTexture());
+   }
 
    _initShaders();
 
