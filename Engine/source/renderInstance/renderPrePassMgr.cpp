@@ -595,26 +595,20 @@ void ProcessedPrePassMaterial::_determineFeatures( U32 stageNum,
    // Deferred Shading : Specular
    if( mStages[stageNum].getTex( MFT_SpecularMap ) )
    {
-      newFeatures.addFeature( MFT_DeferredSpecMap );
-      newFeatures.addFeature( MFT_DeferredSpecStrength );
-
-      if( mStages[stageNum].getTex( MFT_SpecularMap )->mHasTransparency )
-         newFeatures.addFeature( MFT_DeferredGlossMap);
-      else
-         newFeatures.addFeature( MFT_DeferredSpecPower );
+       newFeatures.addFeature( MFT_DeferredSpecMap );
+       
+       if( mStages[stageNum].getTex( MFT_SpecularMap )->mHasTransparency )
+           newFeatures.addFeature( MFT_DeferredGlossMap);
+       else
+           newFeatures.addFeature( MFT_DeferredSpecPower );
+   }
+   else if ( mMaterial->mPixelSpecular[stageNum] )
+   {
+       newFeatures.addFeature( MFT_DeferredSpecStrength );
+       newFeatures.addFeature( MFT_DeferredSpecPower );
    }
    else
-   {
-       if ( mMaterial->mSpecular[stageNum] )
-       {
-           newFeatures.addFeature( MFT_DeferredSpecStrength );
-           newFeatures.addFeature( MFT_DeferredSpecPower );
-       }
-       if (fd.features[MFT_PixSpecular])
-           newFeatures.addFeature(MFT_DeferredSpecColor);
-       else
-           newFeatures.addFeature(MFT_DeferredEmptySpec);
-   }
+       newFeatures.addFeature(MFT_DeferredEmptySpec);
 
    // Deferred Shading : Translucency Mapping
    if ( mStages[stageNum].getTex( MFT_TranslucencyMap ) )

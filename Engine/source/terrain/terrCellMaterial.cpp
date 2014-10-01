@@ -37,7 +37,7 @@
 #include "gfx/util/screenspace.h"
 #include "lighting/advanced/advancedLightBinManager.h"
 
-S32 sgMaxTerrainMaterialsPerPass = 8;
+S32 sgMaxTerrainMaterialsPerPass = 3;
 
 AFTER_MODULE_INIT( MaterialManager )
 {
@@ -490,7 +490,7 @@ bool TerrainCellMaterial::_createPass( Vector<MaterialInfo*> *materials,
          // we get down to a single material.  If a single material case
          // fails it means it cannot generate any passes at all!
          const bool logErrors = matCount == 1;
-         GFXShader::setLogging( logErrors, true );
+         GFXShader::setLogging( true, true );
 
          pass->shader = SHADERGEN->getShader( featureData, getGFXVertexFormat<TerrVertex>(), NULL, mSamplerNames );
       }
@@ -547,8 +547,8 @@ bool TerrainCellMaterial::_createPass( Vector<MaterialInfo*> *materials,
       // MFT_TerrainAdditive feature to lerp the
       // output normal with the previous pass.
       //
-      if ( prePassMat )
-         desc.setColorWrites( true, true, false, false );
+      //if ( prePassMat )
+         //desc.setColorWrites( true, true, false, false );
    }
 
    // We write to the zbuffer if this is a prepass

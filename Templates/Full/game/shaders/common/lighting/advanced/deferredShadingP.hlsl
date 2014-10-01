@@ -36,11 +36,11 @@ float4 main( PFXVertToPix IN,
    float specular = saturate(lightBuffer.a);
 
    // Diffuse Color Altered by Metalness
-   //bool metalness = getFlag(matInfo.r, 3);
-   //if ( metalness )
-   //{
-	//colorBuffer *= (1.0 - colorBuffer.a);
-   //}
+   bool metalness = getFlag(matInfo.r, 3);
+   if ( metalness )
+   {
+      colorBuffer *= (1.0 - colorBuffer.a);
+   }
 
    colorBuffer *= float4(lightBuffer.rgb, 1.0);
    colorBuffer += float4(specular, specular, specular, 1.0);

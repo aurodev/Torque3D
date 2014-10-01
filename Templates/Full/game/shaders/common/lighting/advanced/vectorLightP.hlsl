@@ -268,5 +268,5 @@ float4 main( FarFrustumQuadConnectP IN,
    }
 
    float4 colorSample = tex2D( colorBuffer, IN.uv0 );
-   return AL_DeferredOutput(lightColorOut, colorSample.rgb, matInfo, addToResult, specular, colorSample.a, Sat_NL_Att);
+   return AL_DeferredOutput(lightColorOut, colorSample.rgb, matInfo, addToResult, specular, Sat_NL_Att);
 }

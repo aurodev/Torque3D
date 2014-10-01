@@ -273,7 +273,6 @@ void TerrainBaseMapFeatHLSL::processPix(  Vector<ShaderComponent*> &componentLis
    if(fd.features.hasFeature(MFT_DeferredTerrainBaseMap))
    {
       target= ShaderFeature::RenderTarget1;
-      meta->addStatement(new GenOp( "   @.a = 0.0001;\r\n", baseColor ));
    }
 
    meta->addStatement( new GenOp( "   @;\r\n", assignColor( baseColor, Material::Mul,NULL,target ) ) );
@@ -562,11 +561,6 @@ void TerrainDetailMapFeatHLSL::processPix(   Vector<ShaderComponent*> &component
    meta->addStatement( new GenOp( "      @ = lerp( @, @ + @, @ );\r\n",
                                     outColor, outColor, baseColor, detailColor, detailBlend ) );
 
-   if(fd.features.hasFeature( MFT_DeferredTerrainDetailMap ))
-   {
-      meta->addStatement(new GenOp( "   @.a = 0.0001;\r\n", outColor));
-   }
-
    meta->addStatement( new GenOp( "   }\r\n" ) );
 
    output = meta;
@@ -824,9 +818,6 @@ void TerrainMacroMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentL
                                     outColor, outColor, outColor, detailColor, detailBlend ) );
    //outColor, outColor, baseColor, detailColor, detailBlend ) );
 
-   if(fd.features.hasFeature(MFT_DeferredTerrainMacroMap))
-      meta->addStatement(new GenOp( "   @.a = 0.0001;\r\n", outColor ));
-
    meta->addStatement( new GenOp( "   }\r\n" ) );
 
    output = meta;
@@ -1011,11 +1002,15 @@ ShaderFeature::Resources TerrainLightMapFeatHLSL::getResources( const MaterialFe
    return res;
 }
 
-
 void TerrainAdditiveFeatHLSL::processPix( Vector<ShaderComponent*> &componentList, 
                                           const MaterialFeatureData &fd )
 {
-   Var *color = (Var*) LangElement::find( "col" );
+   Var *color = NULL;
+   if (fd.features[MFT_DeferredTerrainDetailMap])
+       color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget1) );
+   else
+       color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::DefaultTarget) );
+
    Var *blendTotal = (Var*)LangElement::find( "blendTotal" );
    if ( !color || !blendTotal )
       return;
@@ -1024,6 +1019,7 @@ void TerrainAdditiveFeatHLSL::processPix( Vector<ShaderComponent*> &componentLis
 
    meta->addStatement( new GenOp( "   clip( @ - 0.0001 );\r\n", blendTotal ) );
    meta->addStatement( new GenOp( "   @.a = @;\r\n", color, blendTotal ) );
+
 
    output = meta;
 }

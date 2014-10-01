@@ -1829,7 +1829,7 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
 
    // create cubemap var
    Var *cubeMap = new Var;
-   cubeMap->setType( "samplerCUBE" );
+   cubeMap->setType( "samplerCube" );
    cubeMap->setName( "cubeMap" );
    cubeMap->uniform = true;
    cubeMap->sampler = true;

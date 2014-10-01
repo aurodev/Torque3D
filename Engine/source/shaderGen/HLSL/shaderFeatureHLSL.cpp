@@ -1791,30 +1791,9 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
    else
    {
       if (fd.features[MFT_DeferredDiffuseMap])
-      {
-        glossColor = (Var*)LangElement::find( "col1" );
-           if (!fd.features[MFT_DeferredSpecStrength])
-        {
-               meta->addStatement( new GenOp( "   @.a = 0.5;\r\n", glossColor) );
-           } else {
-               Var *specStrength = (Var*)LangElement::find( "specularStrength" );
-               if ( !specStrength )
-               {
-                   specStrength = new Var;
-                   specStrength->setType( "float" );
-                   specStrength->setName( "specularStrength" );
-                   specStrength->uniform = true;
-                   specStrength->constSortPos = cspPotentialPrimitive;
-               }
-               if (fd.features[MFT_DeferredSpecMap]||fd.features[MFT_SpecularMap])
-                   meta->addStatement( new GenOp( "   @.a *= @;\r\n", glossColor, specStrength ) );
-               else
-                   meta->addStatement( new GenOp( "   @.a = @;\r\n", glossColor, specStrength ) );
-               meta->addStatement( new GenOp( "   @ = saturate(@);\r\n", glossColor, glossColor));
-        }
-      }
+          glossColor = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
       else
-      glossColor = (Var*) LangElement::find( "diffuseColor" );
+          glossColor = (Var*) LangElement::find( "diffuseColor" );
       if( !glossColor )
          glossColor = (Var*) LangElement::find( "bumpNormal" );
    }
@@ -1882,7 +1861,7 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
    if (fd.features[MFT_DeferredDiffuseMap])
        meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal, ShaderFeature::RenderTarget1 ) ) );
    else
-   meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal ) ) );         
+       meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal ) ) );         
    output = meta;
 }
 
