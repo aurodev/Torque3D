@@ -471,8 +471,7 @@ void DeferredPixelSpecularHLSL::processPix(  Vector<ShaderComponent*> &component
    Var *specStrength = (Var*)LangElement::find( "specularStrength" );
    if (!specStrength)
    {
-       specStrength->setType( "float" );
-       specStrength->setName( "specularStrength" );
+       specStrength = new Var( "specularStrength", "float" );
        specStrength->uniform = true;
        specStrength->constSortPos = cspPotentialPrimitive;
    }
