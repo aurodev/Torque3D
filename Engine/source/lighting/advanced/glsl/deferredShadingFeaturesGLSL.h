@@ -92,7 +92,6 @@ public:
    virtual void processPix( Vector<ShaderComponent*> &componentList, 
       const MaterialFeatureData &fd );
    
-   virtual U32 getOutputTargets( const MaterialFeatureData &fd ) const { return ShaderFeature::RenderTarget1; }
    virtual Resources getResources( const MaterialFeatureData &fd );
 
    // Sets textures and texture flags for current pass
@@ -133,9 +132,7 @@ public:
    virtual String getName() { return "Deferred Shading: Specular Color"; }
 
    virtual void processPix( Vector<ShaderComponent*> &componentList, 
-      const MaterialFeatureData &fd );
-   
-   virtual U32 getOutputTargets( const MaterialFeatureData &fd ) const { return ShaderFeature::RenderTarget1; }
+      const MaterialFeatureData &fd );   
 };
 
 class DeferredSpecStrengthGLSL : public ShaderFeatureGLSL
@@ -168,7 +165,7 @@ public:
    virtual void processPix( Vector<ShaderComponent*> &componentList, 
       const MaterialFeatureData &fd );
    
-   virtual U32 getOutputTargets( const MaterialFeatureData &fd ) const { return ShaderFeature::RenderTarget1; }
+   virtual U32 getOutputTargets( const MaterialFeatureData &fd ) const { return ShaderFeature::RenderTarget2; }
 };
 
 class DeferredSkyGLSL : public ShaderFeatureGLSL

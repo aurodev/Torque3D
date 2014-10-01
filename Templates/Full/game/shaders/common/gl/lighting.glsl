@@ -230,24 +230,24 @@ float AL_CalcSpecular( vec3 toLight, vec3 normal, vec3 toEye )
 ///                  being lit to the camera.
 ///
 vec4 AL_DeferredOutput(
-		vec3 	lightColor,
-                vec3  diffuseColor,
-                vec4 	matInfo,
-                vec4 	ambient,
-                float   specular, 
-		float 	specularMap, 
-		float 	shadowAttenuation)
+      vec3   lightColor,
+      vec3   diffuseColor,
+      vec4   matInfo,
+      vec4   ambient,
+      float specular,
+      float shadowAttenuation)
 {
-   vec3 specularColor = vec3(specularMap, specularMap, specularMap);
+   vec3 specularColor = vec3(specular);
    bool metalness = getFlag(matInfo.r, 3);
    if ( metalness )
    {
-       specularColor = 0.04 * (1 - specularMap) + diffuseColor * specularMap;
+       specularColor = 0.04 * (1 - specular) + diffuseColor * specular;
    }
 
-   float specularOut = (specularColor * pow(abs(specular), max(((matInfo.b * 128.0) / AL_ConstantSpecularPower),1.0f))).r * (matInfo.a * 5.0);
+   //specular = color * (spec*map)^gloss
+   float specularOut = (specularColor * pow(max(specular*matInfo.a,1.0f), max((matInfo.a / AL_ConstantSpecularPower),1.0f))).r;
    
-   lightColor *= shadowAttenuation;
+   lightColor *= vec3(shadowAttenuation);
    lightColor += ambient.rgb;
    return vec4(lightColor.rgb, specularOut); 
 }

@@ -181,5 +181,5 @@ void main()
    }
 
    vec4 colorSample = texture( colorBuffer, uvScene );
-   OUT_FragColor0 = AL_DeferredOutput(lightColorOut, colorSample.rgb, matInfo, addToResult, specular, colorSample.a, Sat_NL_Att);
+   OUT_FragColor0 = AL_DeferredOutput(lightColorOut, colorSample.rgb, matInfo, addToResult, specular, Sat_NL_Att);
 }
