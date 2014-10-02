@@ -207,13 +207,8 @@ void compute4Lights( float3 wsView,
 ///
 float AL_CalcSpecular( float3 toLight, float3 normal, float3 toEye )
 {
-   #ifdef PHONG_SPECULAR 
-      // (R.V)^c
-      float specVal = dot( normalize( -reflect( toLight, normal ) ), toEye );
-   #else
-      // (N.H)^c [Blinn-Phong, TGEA style, default]
-      float specVal = dot( normal, normalize( toLight + toEye ) );
-   #endif
+   // (R.V)^c
+   float specVal = dot( normalize( -reflect( toLight, normal ) ), toEye );
 
    // Return the specular factor.
    return pow( max( specVal, 0.00001f ), AL_ConstantSpecularPower );
@@ -245,7 +240,7 @@ float4 AL_DeferredOutput(
    }
    
    //specular = color * map * spec^gloss
-   float specularOut = (specularColor * matInfo.b * pow(matInfo.a, max((specular / AL_ConstantSpecularPower),1.0f))).r;
+   float specularOut = (specularColor * matInfo.a * min(pow(specular, max(( matInfo.b/ AL_ConstantSpecularPower),1.0f)),matInfo.b)).r;
    
    lightColor *= shadowAttenuation;
    lightColor += ambient.rgb;

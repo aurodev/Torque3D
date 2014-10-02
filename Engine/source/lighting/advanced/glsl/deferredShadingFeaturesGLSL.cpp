@@ -396,7 +396,7 @@ void DeferredSpecStrengthGLSL::processPix( Vector<ShaderComponent*> &componentLi
    specStrength->uniform = true;
    specStrength->constSortPos = cspPotentialPrimitive;
 
-   if (fd.features[MFT_SpecularMap])
+   if (fd.features[MFT_DeferredSpecMap])
        meta->addStatement(new GenOp("   @.b *= @;\r\n", material, specStrength));
    else
        meta->addStatement(new GenOp("   @.b = @;\r\n", material, specStrength));
@@ -425,7 +425,7 @@ void DeferredSpecPowerGLSL::processPix( Vector<ShaderComponent*> &componentList,
    specPower->uniform = true;
    specPower->constSortPos = cspPotentialPrimitive;
 
-   if (fd.features[MFT_SpecularMap])
+   if (fd.features[MFT_DeferredGlossMap])
        meta->addStatement(new GenOp("   @.a *= @;\r\n", material, specPower ) );
    else
        meta->addStatement(new GenOp("   @.a = @;\r\n", material, specPower ) );
