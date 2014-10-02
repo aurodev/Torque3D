@@ -244,8 +244,8 @@ vec4 AL_DeferredOutput(
        specularColor = 0.04 * (1 - specular) + diffuseColor * specular;
    }
 
-   //specular = color * (spec*map)^gloss
-   float specularOut = (specularColor * pow(max(specular*matInfo.a,1.0f), max((matInfo.a / AL_ConstantSpecularPower),1.0f))).r;
+   //specular = color * map * spec^gloss
+   float specularOut = (specularColor*matInfo.b * pow(max(specular,1.0f), max((matInfo.a / AL_ConstantSpecularPower),1.0f))).r;
    
    lightColor *= vec3(shadowAttenuation);
    lightColor += ambient.rgb;
