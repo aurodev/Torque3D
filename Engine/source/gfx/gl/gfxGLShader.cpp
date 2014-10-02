@@ -945,13 +945,10 @@ bool GFXGLShader::_loadShaderFromStream(  GLuint shader,
    const char *versionDecl = "#version 150\r\n";
    buffers.push_back( dStrdup( versionDecl ) );
    lengths.push_back( dStrlen( versionDecl ) );
-
-   if(gglHasExtension(ARB_explicit_attrib_location))
-   {
-           const char *extension = "#extension GL_ARB_explicit_attrib_location : enable\r\n";
-           buffers.push_back(dStrdup(extension));
-           lengths.push_back(dStrlen(extension));
-   }
+   
+   const char *extension = "#extension GL_ARB_explicit_attrib_location : enable\r\n";
+   buffers.push_back(dStrdup(extension));
+   lengths.push_back(dStrlen(extension));
 
    if(gglHasExtension(EXT_gpu_shader4))
    {
