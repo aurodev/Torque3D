@@ -2390,9 +2390,9 @@ void AlphaTestGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    }
 
    // If we don't have a color var then we cannot do an alpha test.
-   Var *color = (Var*)LangElement::find( "col" );
+   Var *color = (Var*)LangElement::find( "col1" );
    if ( !color )
-	   color = (Var*)LangElement::find("col1");
+	   color = (Var*)LangElement::find("col");
    if ( !color )
    {
       output = NULL;
