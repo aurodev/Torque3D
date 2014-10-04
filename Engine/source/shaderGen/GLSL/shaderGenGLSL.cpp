@@ -73,8 +73,13 @@ void ShaderGenPrinterGLSL::printPixelShaderOutputStruct( Stream& stream, const M
 		if (featureData.features.hasFeature(*info.type))
 			numMRTs |= info.feature->getOutputTargets(featureData);
 	}
-
-	WRITESTR("layout (location = 0) out vec4 OUT_FragColor0;\r\n");
+    
+    if (numMRTs>1)
+    {
+        WRITESTR("layout (location = 0) out vec4 OUT_FragColor0;\r\n");
+    }
+    else
+        WRITESTR("out vec4 OUT_FragColor0;\r\n");
 	for (U32 i = 1; i < 4; i++)
 	{
 		if (numMRTs & 1 << i) 
