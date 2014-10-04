@@ -1790,12 +1790,9 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    }
    else
    {
-      if (fd.features[MFT_DeferredDiffuseMap])
-          glossColor = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-      else
-      glossColor = (Var*) LangElement::find( "diffuseColor" );
-      if( !glossColor )
-         glossColor = (Var*) LangElement::find( "bumpNormal" );
+       glossColor = (Var*) LangElement::find( "diffuseColor" );
+       if( !glossColor )
+           glossColor = (Var*) LangElement::find( "bumpNormal" );
    }
 
    // grab connector texcoord register
@@ -1822,21 +1819,27 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
       if ( fd.materialFeatures[MFT_RTLighting] )
       attn =(Var*)LangElement::find("d_NL_Att");
 
-   // Determine roughness
-   Var *specPower = (Var*)LangElement::find( "specularPower" );
-   if ( !specPower )
+   LangElement *texCube = NULL;
+   Var* matinfo = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+   if (fd.features[MFT_DeferredDiffuseMap] && matinfo)
    {
-      specPower = new Var;
-      specPower->setType( "float" );
-      specPower->setName( "specularPower" );
-      specPower->uniform = true;
-      specPower->constSortPos = cspPotentialPrimitive;
+       // Determine roughness
+       Var *specPower = (Var*)LangElement::find( "specularPower" );
+       if ( !specPower )
+       {
+           specPower = new Var;
+           specPower->setType( "float" );
+           specPower->setName( "specularPower" );
+           meta->addStatement( new GenOp( "   @ = 1.0;\r\n", new DecOp(specPower)) );
+       }
+       meta->addStatement( new GenOp( "   @*=@.b;\r\n", specPower, matinfo ) );
+       meta->addStatement( new GenOp( "   @.a=@.b;\r\n", glossColor, matinfo ) );
+       // Cube LOD level = (1.0 - Roughness) * 8
+       // mip_levle =  min((1.0 - u_glossiness)*11.0 + 1.0, 8.0)
+       //LangElement *texCube = new GenOp( "texCUBElod( @, float4(@, min((1.0 - (@ / 128.0)) * 11.0 + 1.0, 8.0)) )", cubeMap, reflectVec, specPower );
+       texCube = new GenOp( "textureCube(  usamplerCube(@), vec3(@), (@ / 128.0) * 8)", cubeMap, reflectVec, specPower );
    }
-
-   // Cube LOD level = (1.0 - Roughness) * 8
-   // mip_levle =  min((1.0 - u_glossiness)*11.0 + 1.0, 8.0)
-   //LangElement *texCube = new GenOp( "texCUBElod( @, vec4(@, min((1.0 - (@ / 128.0)) * 11.0 + 1.0, 8.0)) )", cubeMap, reflectVec, specPower );
-   LangElement *texCube = new GenOp( "textureCubeLod( @, vec3(@), (@ / 128.0) * 8)", cubeMap, reflectVec, specPower );
+   else texCube = new GenOp( "texCUBE( @, @)", cubeMap, reflectVec );
 
    LangElement *lerpVal = NULL;
    Material::BlendOp blendOp = Material::LerpAlpha;
