@@ -870,10 +870,20 @@ void DiffuseMapFeatGLSL::processPix(   Vector<ShaderComponent*> &componentList,
       diffColor->setName( "diffuseColor" );
       LangElement *colorDecl = new DecOp( diffColor );
    
-      meta->addStatement(  new GenOp( "   @ = tex2D(@, @);\r\n", 
+      if (  fd.features[MFT_Imposter] )
+      {
+          meta->addStatement(  new GenOp( "   @ = tex2D(@, @);\r\n", 
                            colorDecl, 
                            diffuseMap, 
                            inTex ) );
+      }
+      else
+      {
+      meta->addStatement(  new GenOp( "   @ = tex2DLinear(@, @);\r\n", 
+                           colorDecl, 
+                           diffuseMap, 
+                           inTex ) );
+      }
       
       meta->addStatement( new GenOp( "   @;\r\n", assignColor( diffColor, Material::Mul ) ) );
       output = meta;
@@ -957,23 +967,34 @@ void DiffuseMapFeatGLSL::processPix(   Vector<ShaderComponent*> &componentList,
 
       if(is_sm3)
       {
-         meta->addStatement(new GenOp( "   @ = tex2Dlod(@, vec4(@, 0.0, mipLod));\r\n", 
+         meta->addStatement(new GenOp( "   @ = tex2Dlod(@, float4(@, 0.0, mipLod));\r\n", 
             new DecOp(diffColor), diffuseMap, inTex));
       }
       else
       {
-         meta->addStatement(new GenOp( "   @ = tex2D(@, @);\r\n", 
-            new DecOp(diffColor), diffuseMap, inTex));
+          if (  fd.features[MFT_Imposter] )
+              meta->addStatement(new GenOp( "   @ = tex2D(@, @);\r\n",
+                    new DecOp(diffColor), diffuseMap, inTex)); 
+          else
+              meta->addStatement(new GenOp( "   @ = tex2DLinear(@, @);\r\n",
+                    new DecOp(diffColor), diffuseMap, inTex)); 
       }
 
       meta->addStatement(new GenOp( "   @;\r\n", assignColor(diffColor, Material::Mul)));
    }
    else
    {
-      LangElement *statement = new GenOp( "tex2D(@, @)", diffuseMap, inTex );
-      output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul ) );
+       if (  fd.features[MFT_Imposter] )
+       {
+           LangElement *statement = new GenOp( "tex2D(@, @)", diffuseMap, inTex );
+           output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul ) );
+       }
+       else
+       {
+           LangElement *statement = new GenOp( "tex2D(@, @)", diffuseMap, inTex );
+           output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul ) );
+       }
    }
-   
 }
 
 ShaderFeature::Resources DiffuseMapFeatGLSL::getResources( const MaterialFeatureData &fd )
@@ -1705,7 +1726,7 @@ void ReflectCubeFeatGLSL::processVert( Vector<ShaderComponent*> &componentList,
    cubeNormal->setName( "cubeNormal" );
     cubeNormal->setType( "vec3" );
    LangElement *cubeNormDecl = new DecOp( cubeNormal );
-
+   
    meta->addStatement( new GenOp( "   @ = ( tMul( (@),  vec4(@, 0) ) ).xyz;\r\n",
                        cubeNormDecl, cubeTrans, inNormal ) );
 
@@ -1837,7 +1858,7 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
        // Cube LOD level = (1.0 - Roughness) * 8
        // mip_levle =  min((1.0 - u_glossiness)*11.0 + 1.0, 8.0)
        //LangElement *texCube = new GenOp( "texCUBElod( @, float4(@, min((1.0 - (@ / 128.0)) * 11.0 + 1.0, 8.0)) )", cubeMap, reflectVec, specPower );
-       texCube = new GenOp( "textureCube(  usamplerCube(@), vec3(@), (@ / 128.0) * 8)", cubeMap, reflectVec, specPower );
+       texCube = new GenOp( "textureCube(  usamplerCube(@), vec3(@), (@ / 128.0) * 8.0)", cubeMap, reflectVec, specPower );
    }
    else texCube = new GenOp( "texCUBE( @, @)", cubeMap, reflectVec );
 

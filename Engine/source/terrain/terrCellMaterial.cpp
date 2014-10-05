@@ -561,7 +561,6 @@ bool TerrainCellMaterial::_createPass( Vector<MaterialInfo*> *materials,
    if ( pass->baseTexMapConst->isValid() )
    {
       desc.samplers[pass->baseTexMapConst->getSamplerRegister()] = GFXSamplerStateDesc::getWrapLinear();
-      desc.samplers[pass->baseTexMapConst->getSamplerRegister()].inGammaSpace = true;
    }
 
    if ( pass->layerTexConst->isValid() )
