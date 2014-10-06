@@ -66,10 +66,12 @@ void _initShaderGenGLSL( ShaderGen *shaderGen )
    FEATUREMGR->registerFeature( MFT_SpecularMap, new SpecularMapGLSL );
    FEATUREMGR->registerFeature( MFT_GlossMap, new NamedFeatureGLSL( "Gloss Map" ) );
    FEATUREMGR->registerFeature( MFT_IsTranslucent, new NamedFeatureGLSL( "Translucent" ) );
+   FEATUREMGR->registerFeature( MFT_IsTranslucentZWrite, new NamedFeatureGLSL( "Translucent ZWrite" ) );
    FEATUREMGR->registerFeature( MFT_Visibility, new VisibilityFeatGLSL );
    FEATUREMGR->registerFeature( MFT_Fog, new FogFeatGLSL );
    FEATUREMGR->registerFeature( MFT_LightbufferMRT, new NamedFeatureGLSL( "Lightbuffer MRT" ) );
    FEATUREMGR->registerFeature( MFT_RenderTarget1_Zero, new RenderTargetZeroGLSL( ShaderFeature::RenderTarget1 ) );
+   FEATUREMGR->registerFeature( MFT_Imposter, new NamedFeatureGLSL( "Imposter" ) );
 
 	FEATUREMGR->registerFeature( MFT_NormalsOut, new NormalsOutFeatGLSL );
 	
