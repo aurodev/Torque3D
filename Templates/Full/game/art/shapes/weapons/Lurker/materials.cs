@@ -34,13 +34,15 @@ singleton Material(Lurker_ScopeScreen_Base)
 singleton Material(Lurker_Base)
 {
    mapTo = "Lurker_Base";
-   diffuseMap[0] = "Lurker_D.dds";
-   normalMap[0] = "Lurker_N.dds";
-   specularMap[0] = "Lurker_S.dds";
+   diffuseMap[0] = "art/shapes/weapons/Lurker/Lurker_D.dds";
+   normalMap[0] = "art/shapes/weapons/Lurker/Lurker_N.dds";
+   specularMap[0] = "art/shapes/weapons/Lurker/Lurker_S.dds";
    specular[0] = "1 1 1 1";
-   specularPower[0] = "10";
+   specularPower[0] = "1";
    translucentBlendOp = "None";
    useAnisotropic[0] = "1";
+   cubemap = "DesertSkyCubemap";
+   materialTag0 = "Miscellaneous";
 };
 
 singleton Material(Lurker_MuzzleFlash_Base)
