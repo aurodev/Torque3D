@@ -240,7 +240,7 @@ float4 AL_DeferredOutput(
    }
    
    //specular = color * map * spec^gloss
-   float specularOut = (specularColor * matInfo.a * min(pow(specular, max(( matInfo.b/ AL_ConstantSpecularPower),1.0f)),matInfo.b)).r;
+   float specularOut = (specularColor * matInfo.b * min(pow(specular, max(( matInfo.a/ AL_ConstantSpecularPower),1.0f)),matInfo.a)).r;
    
    lightColor *= shadowAttenuation;
    lightColor += ambient.rgb;

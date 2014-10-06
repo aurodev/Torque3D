@@ -292,7 +292,7 @@ bool getFlag(float flags, int num)
    return (mod(process, pow(2, squareNum)) >= squareNum); 
 }
 
-// #define TORQUE_STOCK_GAMMA
+// define TORQUE_STOCK_GAMMA
 #ifdef TORQUE_STOCK_GAMMA
 // Sample in linear space. Decodes gamma.
 vec4 tex2DLinear(sampler2D tex, vec2 texCoord)
