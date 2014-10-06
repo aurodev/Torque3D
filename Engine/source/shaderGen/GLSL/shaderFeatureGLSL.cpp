@@ -1862,7 +1862,8 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
        // Cube LOD level = (1.0 - Roughness) * 8
        // mip_levle =  min((1.0 - u_glossiness)*11.0 + 1.0, 8.0)
        //LangElement *texCube = new GenOp( "texCUBElod( @, float4(@, min((1.0 - (@ / 128.0)) * 11.0 + 1.0, 8.0)) )", cubeMap, reflectVec, specPower );
-       texCube = new GenOp( "textureCube(  usamplerCube(@), vec3(@), (@ / 128.0) * 8.0)", cubeMap, reflectVec, specPower );
+       //texCube = new GenOp( "texture(  usamplerCube(@), vec3(@), (@ / 128.0) * 8.0)", cubeMap, reflectVec, specPower ); //FIXME
+       texCube = new GenOp( "texCUBE( @, @)", cubeMap, reflectVec );
    }
    else texCube = new GenOp( "texCUBE( @, @)", cubeMap, reflectVec );
 
@@ -1889,7 +1890,7 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    if (fd.features[MFT_DeferredDiffuseMap])
        meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal, ShaderFeature::RenderTarget1 ) ) );
    else
-   meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal ) ) );         
+        meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal ) ) );         
    output = meta;
 }
 
