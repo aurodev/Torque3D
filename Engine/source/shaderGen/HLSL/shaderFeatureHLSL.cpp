@@ -878,7 +878,7 @@ if (  fd.features[MFT_CubeMap] )
       }
       else
       {
-      meta->addStatement(  new GenOp( "   @ = tex2DLinear(@, @);\r\n", 
+          meta->addStatement(  new GenOp( "   @ = tex2DLinear(@, @);\r\n", 
                            colorDecl, 
                            diffuseMap, 
                            inTex ) );
@@ -966,8 +966,12 @@ if (  fd.features[MFT_CubeMap] )
 
       if(is_sm3)
       {
-         meta->addStatement(new GenOp( "   @ = tex2Dlod(@, float4(@, 0.0, mipLod));\r\n", 
-            new DecOp(diffColor), diffuseMap, inTex));
+          if (  fd.features[MFT_Imposter] )
+              meta->addStatement(new GenOp( "   @ = tex2DlodLinear(@, float4(@, 0.0, mipLod));\r\n", 
+              new DecOp(diffColor), diffuseMap, inTex));
+          else
+              meta->addStatement(new GenOp( "   @ = tex2Dlod(@, float4(@, 0.0, mipLod));\r\n", 
+              new DecOp(diffColor), diffuseMap, inTex));
       }
       else
       {
