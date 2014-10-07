@@ -31,6 +31,7 @@
 #include "shaderGen/langElement.h"
 #include "shaderGen/shaderOp.h"
 #include "shaderGen/featureMgr.h"
+#include "shaderGen/shaderGen.h"
 #include "core/module.h"
 
 
@@ -47,7 +48,7 @@ MODULE_BEGIN( TerrainFeatHLSL )
       FEATUREMGR->registerFeature( MFT_TerrainMacroMap, new TerrainMacroMapFeatHLSL );
       FEATUREMGR->registerFeature( MFT_TerrainLightMap, new TerrainLightMapFeatHLSL );
       FEATUREMGR->registerFeature( MFT_TerrainSideProject, new NamedFeatureHLSL( "Terrain Side Projection" ) );
-      FEATUREMGR->registerFeature( MFT_TerrainAdditive, new TerrainAdditiveFeatHLSL );
+      FEATUREMGR->registerFeature( MFT_TerrainAdditive, new TerrainAdditiveFeatHLSL );     
       FEATUREMGR->registerFeature( MFT_DeferredTerrainBaseMap, new TerrainBaseMapFeatHLSL );
       FEATUREMGR->registerFeature( MFT_DeferredTerrainMacroMap, new TerrainMacroMapFeatHLSL );
       FEATUREMGR->registerFeature( MFT_DeferredTerrainDetailMap, new TerrainDetailMapFeatHLSL );
@@ -58,9 +59,9 @@ MODULE_END;
 
 TerrainFeatHLSL::TerrainFeatHLSL()
    : mTorqueDep( "shaders/common/torque.hlsl" )
-{
+   {      
    addDependency( &mTorqueDep );
-}
+   }
 
 Var* TerrainFeatHLSL::_getUniformVar( const char *name, const char *type, ConstantSortPosition csp )
 {
@@ -255,14 +256,13 @@ void TerrainBaseMapFeatHLSL::processPix(  Vector<ShaderComponent*> &componentLis
    Var *baseColor = new Var;
    baseColor->setType( "float4" );
    baseColor->setName( "baseColor" );
-   meta->addStatement( new GenOp( "   @ = tex2D( @, @.xy );\r\n", new DecOp( baseColor ), diffuseMap, texCoord ) );
+   meta->addStatement( new GenOp( "   @ = tex2DLinear( @, @.xy );\r\n", new DecOp( baseColor ), diffuseMap, texCoord ) );
 
   ShaderFeature::OutputTarget target = ShaderFeature::DefaultTarget;
 
    if(fd.features.hasFeature(MFT_DeferredTerrainBaseMap))
    {
       target= ShaderFeature::RenderTarget1;
-      meta->addStatement(new GenOp( "   @.a = 0.0001;\r\n", baseColor ));
    }
 
    meta->addStatement( new GenOp( "   @;\r\n", assignColor( baseColor, Material::Mul,NULL,target ) ) );
@@ -274,7 +274,7 @@ ShaderFeature::Resources TerrainBaseMapFeatHLSL::getResources( const MaterialFea
 {
    Resources res; 
    res.numTexReg = 1;
-   res.numTex = 1;
+      res.numTex = 1;
 
    return res;
 }
@@ -463,7 +463,7 @@ void TerrainDetailMapFeatHLSL::processPix(   Vector<ShaderComponent*> &component
    }
 
    // Add to the blend total.
-   meta->addStatement( new GenOp( "   @ = max( @, @ );\r\n", blendTotal, blendTotal, detailBlend ) );
+   meta->addStatement( new GenOp( "   @ += @;\r\n", blendTotal, detailBlend ) );
 
    // If we had a parallax feature... then factor in the parallax
    // amount so that it fades out with the layer blending.
@@ -476,7 +476,7 @@ void TerrainDetailMapFeatHLSL::processPix(   Vector<ShaderComponent*> &component
       if(fd.features.hasFeature( MFT_IsDXTnm, detailIndex ) )
       {
          meta->addStatement( new GenOp( "   @.xy += parallaxOffsetDxtnm( @, @.xy, @, @.z * @ );\r\n", 
-            inDet, normalMap, inDet, negViewTS, detailInfo, detailBlend ) );
+         inDet, normalMap, inDet, negViewTS, detailInfo, detailBlend ) );
       }
       else
       {
@@ -551,11 +551,6 @@ void TerrainDetailMapFeatHLSL::processPix(   Vector<ShaderComponent*> &component
    meta->addStatement( new GenOp( "      @ = lerp( @, @ + @, @ );\r\n",
                                     outColor, outColor, baseColor, detailColor, detailBlend ) );
 
-   if(fd.features.hasFeature( MFT_DeferredTerrainDetailMap ))
-   {
-      meta->addStatement(new GenOp( "   @.a = 0.0001;\r\n", outColor));
-   }
-
    meta->addStatement( new GenOp( "   }\r\n" ) );
 
    output = meta;
@@ -579,7 +574,7 @@ ShaderFeature::Resources TerrainDetailMapFeatHLSL::getResources( const MaterialF
    }
 
    // sample from the detail texture for diffuse coloring.
-   res.numTex += 1;
+      res.numTex += 1;
 
    // If we have parallax for this layer then we'll also
    // be sampling the normal map for the parallax heightmap.
@@ -753,7 +748,7 @@ void TerrainMacroMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentL
    }
 
    // Add to the blend total.
-   meta->addStatement( new GenOp( "   @ = max( @, @ );\r\n", blendTotal, blendTotal, detailBlend ) );
+   meta->addStatement( new GenOp( "   @ += @;\r\n", blendTotal, detailBlend ) );
 
    Var *detailColor = (Var*)LangElement::find( "macroColor" ); 
    if ( !detailColor )
@@ -813,9 +808,6 @@ void TerrainMacroMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentL
                                     outColor, outColor, outColor, detailColor, detailBlend ) );
    //outColor, outColor, baseColor, detailColor, detailBlend ) );
 
-   if(fd.features.hasFeature(MFT_DeferredTerrainMacroMap))
-      meta->addStatement(new GenOp( "   @.a = 0.0001;\r\n", outColor ));
-
    meta->addStatement( new GenOp( "   }\r\n" ) );
 
    output = meta;
@@ -832,7 +824,7 @@ ShaderFeature::Resources TerrainMacroMapFeatHLSL::getResources( const MaterialFe
       res.numTex += 1;
    }
 
-   res.numTex += 1;
+      res.numTex += 1;
 
    // Finally we always send the detail texture 
    // coord to the pixel shader.
@@ -1000,11 +992,15 @@ ShaderFeature::Resources TerrainLightMapFeatHLSL::getResources( const MaterialFe
    return res;
 }
 
-
 void TerrainAdditiveFeatHLSL::processPix( Vector<ShaderComponent*> &componentList, 
                                           const MaterialFeatureData &fd )
 {
-   Var *color = (Var*) LangElement::find( "col" );
+   Var *color = NULL;
+   if (fd.features[MFT_DeferredTerrainDetailMap])
+       color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget1) );
+   else
+       color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::DefaultTarget) );
+
    Var *blendTotal = (Var*)LangElement::find( "blendTotal" );
    if ( !color || !blendTotal )
       return;
@@ -1013,6 +1009,7 @@ void TerrainAdditiveFeatHLSL::processPix( Vector<ShaderComponent*> &componentLis
 
    meta->addStatement( new GenOp( "   clip( @ - 0.0001 );\r\n", blendTotal ) );
    meta->addStatement( new GenOp( "   @.a = @;\r\n", color, blendTotal ) );
+
 
    output = meta;
 }

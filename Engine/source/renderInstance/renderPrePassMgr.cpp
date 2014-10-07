@@ -159,24 +159,32 @@ bool RenderPrePassMgr::_updateTargets()
    //If independent bit depth on a MRT is supported than just use 8bit channels for the albedo color.
    if(independentMrtBitDepth)
       colorFormat = GFXFormatR8G8B8A8;
-
+   
    // andrewmac: Deferred Shading Color Buffer
-   mColorTarget.release();
-   mColorTex.set( mTargetSize.x, mTargetSize.y, colorFormat,
-            &GFXDefaultRenderTargetProfile, avar( "%s() - (line %d)", __FUNCTION__, __LINE__ ),
-            1, GFXTextureManager::AA_MATCH_BACKBUFFER );
-   mColorTarget.setTexture(mColorTex);
-   for ( U32 i = 0; i < mTargetChainLength; i++ )
-      mTargetChain[i]->attachTexture(GFXTextureTarget::Color1, mColorTarget.getTexture());
-
+   if (mColorTex.getFormat() != colorFormat || mColorTex.getWidthHeight() != mTargetSize)
+   {
+           mColorTarget.release();
+           mColorTex.set(mTargetSize.x, mTargetSize.y, colorFormat,
+                   &GFXDefaultRenderTargetProfile, avar("%s() - (line %d)", __FUNCTION__, __LINE__),
+                   1, GFXTextureManager::AA_MATCH_BACKBUFFER);
+           mColorTarget.setTexture(mColorTex);
+ 
+           for (U32 i = 0; i < mTargetChainLength; i++)
+                   mTargetChain[i]->attachTexture(GFXTextureTarget::Color1, mColorTarget.getTexture());
+   }
+ 
    // andrewmac: Deferred Shading Material Info Buffer
-   mMatInfoTarget.release();
-   mMatInfoTex.set( mTargetSize.x, mTargetSize.y, colorFormat,
-            &GFXDefaultRenderTargetProfile, avar( "%s() - (line %d)", __FUNCTION__, __LINE__ ),
-            1, GFXTextureManager::AA_MATCH_BACKBUFFER );
-   mMatInfoTarget.setTexture(mMatInfoTex);
-   for ( U32 i = 0; i < mTargetChainLength; i++ )
-      mTargetChain[i]->attachTexture(GFXTextureTarget::Color2, mMatInfoTarget.getTexture());
+   if (mMatInfoTex.getFormat() != colorFormat || mMatInfoTex.getWidthHeight() != mTargetSize)
+   {
+                mMatInfoTarget.release();
+                mMatInfoTex.set(mTargetSize.x, mTargetSize.y, colorFormat,
+                        &GFXDefaultRenderTargetProfile, avar("%s() - (line %d)", __FUNCTION__, __LINE__),
+                        1, GFXTextureManager::AA_MATCH_BACKBUFFER);
+                mMatInfoTarget.setTexture(mMatInfoTex);
+ 
+                for (U32 i = 0; i < mTargetChainLength; i++)
+                        mTargetChain[i]->attachTexture(GFXTextureTarget::Color2, mMatInfoTarget.getTexture());
+   }
 
    _initShaders();
 
@@ -366,7 +374,7 @@ void RenderPrePassMgr::render( SceneRenderState *state )
       setupSGData( ri, sgData );
 
       Vector< MainSortElem >::const_iterator meshItr, endOfBatchItr = itr;
-      
+
       while ( mat->setupPass( state, sgData ) )
       {
          meshItr = itr;
@@ -383,28 +391,28 @@ void RenderPrePassMgr::render( SceneRenderState *state )
             if ( newPassNeeded( ri, passRI ) )
                break;
 
-			// Set up SG data for this instance.
-			setupSGData(passRI, sgData);
+            // Set up SG data for this instance.
+            setupSGData( passRI, sgData );
             mat->setSceneInfo(state, sgData);
 
             matrixSet.setWorld(*passRI->objectToWorld);
             matrixSet.setView(*passRI->worldToCamera);
             matrixSet.setProjection(*passRI->projection);
-			mat->setTransforms(matrixSet, state);            
+            mat->setTransforms(matrixSet, state);
 
-			// If we're instanced then don't render yet.
-			if (mat->isInstanced())
-			{
-				// Let the material increment the instance buffer, but
-				// break the batch if it runs out of room for more.
-				if (!mat->stepInstance())
-				{
-					meshItr++;
-					break;
-				}
+            // If we're instanced then don't render yet.
+            if ( mat->isInstanced() )
+            {
+               // Let the material increment the instance buffer, but
+               // break the batch if it runs out of room for more.
+               if ( !mat->stepInstance() )
+               {
+                  meshItr++;
+                  break;
+               }
 
-				continue;
-			}
+               continue;
+            }
 
             bool dirty = false;
 
@@ -587,26 +595,20 @@ void ProcessedPrePassMaterial::_determineFeatures( U32 stageNum,
    // Deferred Shading : Specular
    if( mStages[stageNum].getTex( MFT_SpecularMap ) )
    {
-      newFeatures.addFeature( MFT_DeferredSpecMap );
-      newFeatures.addFeature( MFT_DeferredSpecStrength );
-
-      if( mStages[stageNum].getTex( MFT_SpecularMap )->mHasTransparency )
-         newFeatures.addFeature( MFT_DeferredGlossMap);
-      else
-         newFeatures.addFeature( MFT_DeferredSpecPower );
+       newFeatures.addFeature( MFT_DeferredSpecMap );
+       
+       if( mStages[stageNum].getTex( MFT_SpecularMap )->mHasTransparency )
+           newFeatures.addFeature( MFT_DeferredGlossMap);
+       else
+           newFeatures.addFeature( MFT_DeferredSpecPower );
+   }
+   else if ( mMaterial->mPixelSpecular[stageNum] )
+   {
+       newFeatures.addFeature( MFT_DeferredSpecStrength );
+       newFeatures.addFeature( MFT_DeferredSpecPower );
    }
    else
-   {
-       if ( mMaterial->mSpecular[stageNum] )
-       {
-           newFeatures.addFeature( MFT_DeferredSpecStrength );
-           newFeatures.addFeature( MFT_DeferredSpecPower );
-       }
-       if (fd.features[MFT_PixSpecular])
-           newFeatures.addFeature(MFT_DeferredSpecColor);
-       else
-           newFeatures.addFeature(MFT_DeferredEmptySpec);
-   }
+       newFeatures.addFeature(MFT_DeferredEmptySpec);
 
    // Deferred Shading : Translucency Mapping
    if ( mStages[stageNum].getTex( MFT_TranslucencyMap ) )
@@ -988,12 +990,12 @@ Var* LinearEyeDepthConditioner::printMethodHeader( MethodType methodType, const 
       // possible so that the shader compiler can optimize.
       meta->addStatement( new GenOp( "   #if TORQUE_SM >= 30\r\n" ) );
       if (GFX->getAdapterType() == OpenGL)
-         meta->addStatement( new GenOp( "    @ = texture2DLod(@, @, 0); \r\n", bufferSampleDecl, prepassSampler, screenUV) );
+         meta->addStatement( new GenOp( "    @ = textureLod(@, @, 0); \r\n", bufferSampleDecl, prepassSampler, screenUV) );
       else
          meta->addStatement( new GenOp( "      @ = tex2Dlod(@, float4(@,0,0));\r\n", bufferSampleDecl, prepassSampler, screenUV ) );
       meta->addStatement( new GenOp( "   #else\r\n" ) );
       if (GFX->getAdapterType() == OpenGL)
-         meta->addStatement( new GenOp( "    @ = texture2D(@, @);\r\n", bufferSampleDecl, prepassSampler, screenUV) );
+         meta->addStatement( new GenOp( "    @ = texture(@, @);\r\n", bufferSampleDecl, prepassSampler, screenUV) );
       else
          meta->addStatement( new GenOp( "      @ = tex2D(@, @);\r\n", bufferSampleDecl, prepassSampler, screenUV ) );
       meta->addStatement( new GenOp( "   #endif\r\n\r\n" ) );
@@ -1014,7 +1016,7 @@ void RenderPrePassMgr::_initShaders()
    ShaderData *shaderData;
    mClearGBufferShader = Sim::findObject( "ClearGBufferShader", shaderData ) ? shaderData->getShader() : NULL;
    if ( !mClearGBufferShader )
-      Con::errorf( "RenderPrePassMgr::_initShaders - could not find ClearBufferShader" );
+      Con::errorf( "RenderPrePassMgr::_initShaders - could not find ClearGBufferShader" );
 
    // Create StateBlocks
    GFXStateBlockDesc desc;

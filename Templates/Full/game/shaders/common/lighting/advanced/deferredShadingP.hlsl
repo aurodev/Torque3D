@@ -33,17 +33,17 @@ float4 main( PFXVertToPix IN,
    float4 lightBuffer = tex2D( lightPrePassTex, IN.uv0 );
    float4 colorBuffer = tex2D( colorBufferTex, IN.uv0 );
    float4 matInfo = tex2D( matInfoTex, IN.uv0 );
-   float specular = lightBuffer.a;
+   float specular = saturate(lightBuffer.a);
 
    // Diffuse Color Altered by Metalness
    bool metalness = getFlag(matInfo.r, 3);
    if ( metalness )
    {
-	colorBuffer *= (1.0 - colorBuffer.a);
+      colorBuffer *= (1.0 - colorBuffer.a);
    }
 
-   colorBuffer += float4(specular, specular, specular, 1.0);
    colorBuffer *= float4(lightBuffer.rgb, 1.0);
+   colorBuffer += float4(specular, specular, specular, 1.0);
 
    return hdrEncode( colorBuffer );   
 }

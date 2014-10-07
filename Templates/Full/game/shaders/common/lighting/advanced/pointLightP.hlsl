@@ -265,5 +265,5 @@ float4 main(   ConvexConnectP IN,
    }
 
    float4 colorSample = tex2D( colorBuffer, uvScene );
-   return AL_DeferredOutput(lightColorOut, colorSample.rgb, matInfo, addToResult, specular, colorSample.a, Sat_NL_Att);
+   return AL_DeferredOutput(lightColorOut, colorSample.rgb, matInfo, addToResult, specular, Sat_NL_Att);
 }

@@ -207,13 +207,8 @@ void compute4Lights( float3 wsView,
 ///
 float AL_CalcSpecular( float3 toLight, float3 normal, float3 toEye )
 {
-   #ifdef PHONG_SPECULAR 
-      // (R.V)^c
-      float specVal = dot( normalize( -reflect( toLight, normal ) ), toEye );
-   #else
-      // (N.H)^c [Blinn-Phong, TGEA style, default]
-      float specVal = dot( normal, normalize( toLight + toEye ) );
-   #endif
+   // (R.V)^c
+   float specVal = dot( normalize( -reflect( toLight, normal ) ), toEye );
 
    // Return the specular factor.
    return pow( max( specVal, 0.00001f ), AL_ConstantSpecularPower );
@@ -230,22 +225,22 @@ float AL_CalcSpecular( float3 toLight, float3 normal, float3 toEye )
 ///                  being lit to the camera.
 ///
 float4 AL_DeferredOutput(
-		float3 	lightColor,
-                float3  diffuseColor,
-                float4 	matInfo,
-                float4 	ambient,
-                float   specular, 
-		float 	specularMap, 
-		float 	shadowAttenuation)
+      float3   lightColor,
+      float3   diffuseColor,
+      float4   matInfo,
+      float4   ambient,
+      float    specular,
+      float    shadowAttenuation)
 {
-   float3 specularColor = float3(specularMap, specularMap, specularMap);
+   float3 specularColor = float3(specular, specular, specular);
    bool metalness = getFlag(matInfo.r, 3);
    if ( metalness )
    {
-       specularColor = 0.04 * (1 - specularMap) + diffuseColor * specularMap;
+       specularColor = 0.04 * (1 - specular) + diffuseColor * specular;
    }
-
-   float specularOut = (specularColor * pow(abs(specular), max(((matInfo.b * 128.0) / AL_ConstantSpecularPower),1.0f))).r * (matInfo.a * 5.0);
+   
+   //specular = color * map * spec^gloss
+   float specularOut = (specularColor * matInfo.b * min(pow(specular, max(( matInfo.a/ AL_ConstantSpecularPower),1.0f)),matInfo.a)).r;
    
    lightColor *= shadowAttenuation;
    lightColor += ambient.rgb;

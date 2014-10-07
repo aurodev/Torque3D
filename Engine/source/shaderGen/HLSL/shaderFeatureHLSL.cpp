@@ -827,9 +827,9 @@ Var* ShaderFeatureHLSL::addOutDetailTexCoord(   Vector<ShaderComponent*> &compon
 //****************************************************************************
 
 DiffuseMapFeatHLSL::DiffuseMapFeatHLSL()
-   : mTorqueDep( "shaders/common/torque.hlsl" )
+: mTorqueDep("shaders/common/torque.hlsl")
 {
-   addDependency( &mTorqueDep );
+	addDependency(&mTorqueDep);
 }
 
 void DiffuseMapFeatHLSL::processVert( Vector<ShaderComponent*> &componentList, 
@@ -859,7 +859,7 @@ void DiffuseMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
    diffuseMap->sampler = true;
    diffuseMap->constNum = Var::getTexUnitNum();     // used as texture unit num here
 
-   if (  fd.features[MFT_CubeMap] )
+if (  fd.features[MFT_CubeMap] )
    {
       MultiLine * meta = new MultiLine;
       
@@ -868,12 +868,22 @@ void DiffuseMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
       diffColor->setType( "float4" );
       diffColor->setName( "diffuseColor" );
       LangElement *colorDecl = new DecOp( diffColor );
-      
-      meta->addStatement(  new GenOp( "   @ = tex2D(@, @);\r\n", 
+   
+      if (  fd.features[MFT_Imposter] )
+      {
+          meta->addStatement(  new GenOp( "   @ = tex2D(@, @);\r\n", 
                            colorDecl, 
                            diffuseMap, 
                            inTex ) );
-
+      }
+      else
+      {
+          meta->addStatement(  new GenOp( "   @ = tex2DLinear(@, @);\r\n", 
+                           colorDecl, 
+                           diffuseMap, 
+                           inTex ) );
+      }
+      
       meta->addStatement( new GenOp( "   @;\r\n", assignColor( diffColor, Material::Mul ) ) );
       output = meta;
    }
@@ -956,23 +966,38 @@ void DiffuseMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
 
       if(is_sm3)
       {
-         meta->addStatement(new GenOp( "   @ = tex2Dlod(@, float4(@, 0.0, mipLod));\r\n", 
-            new DecOp(diffColor), diffuseMap, inTex));
+          if (  fd.features[MFT_Imposter] )
+              meta->addStatement(new GenOp( "   @ = tex2DlodLinear(@, float4(@, 0.0, mipLod));\r\n", 
+              new DecOp(diffColor), diffuseMap, inTex));
+          else
+              meta->addStatement(new GenOp( "   @ = tex2Dlod(@, float4(@, 0.0, mipLod));\r\n", 
+              new DecOp(diffColor), diffuseMap, inTex));
       }
       else
       {
-          meta->addStatement(new GenOp( "   @ = tex2D(@, @);\r\n",
-              new DecOp(diffColor), diffuseMap, inTex)); 
+          if (  fd.features[MFT_Imposter] )
+              meta->addStatement(new GenOp( "   @ = tex2D(@, @);\r\n",
+                    new DecOp(diffColor), diffuseMap, inTex)); 
+          else
+              meta->addStatement(new GenOp( "   @ = tex2DLinear(@, @);\r\n",
+                    new DecOp(diffColor), diffuseMap, inTex)); 
       }
 
       meta->addStatement(new GenOp( "   @;\r\n", assignColor(diffColor, Material::Mul)));
    }
    else
    {
-       LangElement *statement = new GenOp( "tex2D(@, @)", diffuseMap, inTex );
-       output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul ) );
-   }
-   
+       if (  fd.features[MFT_Imposter] )
+       {
+           LangElement *statement = new GenOp( "tex2D(@, @)", diffuseMap, inTex );
+           output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul ) );
+       }
+       else
+       {
+           LangElement *statement = new GenOp( "tex2DLinear(@, @)", diffuseMap, inTex );
+           output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul ) );
+       }
+   }   
 }
 
 ShaderFeature::Resources DiffuseMapFeatHLSL::getResources( const MaterialFeatureData &fd )
@@ -991,7 +1016,10 @@ void DiffuseMapFeatHLSL::setTexData(   Material::StageData &stageDat,
 {
    GFXTextureObject *tex = stageDat.getTex( MFT_DiffuseMap );
    if ( tex )
+   {
+      passData.mSamplerNames[ texIndex ] = "diffuseMap";
       passData.mTexSlot[ texIndex++ ].texObject = tex;
+   }
 }
 
 
@@ -1075,7 +1103,10 @@ void OverlayTexFeatHLSL::setTexData(   Material::StageData &stageDat,
 {
    GFXTextureObject *tex = stageDat.getTex( MFT_OverlayMap );
    if ( tex )
+   {
+      passData.mSamplerNames[texIndex] = "overlayMap";
       passData.mTexSlot[ texIndex++ ].texObject = tex;
+}
 }
 
 
@@ -1091,7 +1122,7 @@ void DiffuseFeatureHLSL::processPix(   Vector<ShaderComponent*> &componentList,
    diffuseMaterialColor->setName( "diffuseMaterialColor" );
    diffuseMaterialColor->uniform = true;
    diffuseMaterialColor->constSortPos = cspPotentialPrimitive;
-   
+
    ShaderFeature::OutputTarget targ = ShaderFeature::DefaultTarget;
 
    Var *col = (Var*)LangElement::find( "col1" );
@@ -1269,6 +1300,7 @@ void LightmapFeatHLSL::setTexData(  Material::StageData &stageDat,
                                     U32 &texIndex )
 {
    GFXTextureObject *tex = stageDat.getTex( MFT_LightMap );
+   passData.mSamplerNames[ texIndex ] = "lightMap";
    if ( tex )
       passData.mTexSlot[ texIndex++ ].texObject = tex;
    else
@@ -1398,6 +1430,7 @@ void TonemapFeatHLSL::setTexData(  Material::StageData &stageDat,
    if ( tex )
    {
       passData.mTexType[ texIndex ] = Material::ToneMapTex;
+      passData.mSamplerNames[ texIndex ] = "toneMap";
       passData.mTexSlot[ texIndex++ ].texObject = tex;
    }
 }
@@ -1591,7 +1624,10 @@ void DetailFeatHLSL::setTexData( Material::StageData &stageDat,
 {
    GFXTextureObject *tex = stageDat.getTex( MFT_DetailMap );
    if ( tex )
+   {
+      passData.mSamplerNames[texIndex] = "detailMap";
       passData.mTexSlot[ texIndex++ ].texObject = tex;
+   }
 }
 
 
@@ -1778,35 +1814,13 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
       }
    }
    else
-   {       
-       if (fd.features[MFT_DeferredDiffuseMap])
-       {
-           if (!glossColor)
-               glossColor = (Var*)LangElement::find( "col1" );
-           if (!fd.features[MFT_DeferredSpecStrength])
-           {
-               meta->addStatement( new GenOp( "   @.a = 0.5;\r\n", glossColor) );
-           } else {
-               Var *specStrength = (Var*)LangElement::find( "specularStrength" );
-               if ( !specStrength )
-               {
-                   specStrength = new Var;
-                   specStrength->setType( "float" );
-                   specStrength->setName( "specularStrength" );
-                   specStrength->uniform = true;
-                   specStrength->constSortPos = cspPotentialPrimitive;
-               }
-               if (fd.features[MFT_DeferredSpecMap]||fd.features[MFT_SpecularMap])
-                   meta->addStatement( new GenOp( "   @.a *= @;\r\n", glossColor, specStrength ) );
-               else
-                   meta->addStatement( new GenOp( "   @.a = @;\r\n", glossColor, specStrength ) );
-               meta->addStatement( new GenOp( "   @ = saturate(@);\r\n", glossColor, glossColor));
-           }
-       }
-       else
-           glossColor = (Var*) LangElement::find( "diffuseColor" );
-       if( !glossColor )
-           glossColor = (Var*) LangElement::find( "bumpNormal" );
+   {
+      if (fd.features[MFT_DeferredDiffuseMap])
+          glossColor = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget1) );
+      else
+          glossColor = (Var*) LangElement::find( "diffuseColor" );
+      if( !glossColor )
+         glossColor = (Var*) LangElement::find( "bumpNormal" );
    }
 
    // grab connector texcoord register
@@ -1832,22 +1846,28 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
    //else 
       if ( fd.materialFeatures[MFT_RTLighting] )
       attn =(Var*)LangElement::find("d_NL_Att");
-
-   // Determine roughness
-   Var *specPower = (Var*)LangElement::find( "specularPower" );
-   if ( !specPower )
+      
+   LangElement *texCube = NULL;
+   Var* matinfo = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+   if (fd.features[MFT_DeferredDiffuseMap] && matinfo)
    {
-      specPower = new Var;
-      specPower->setType( "float" );
-      specPower->setName( "specularPower" );
-      specPower->uniform = true;
-      specPower->constSortPos = cspPotentialPrimitive;
+       // Determine roughness
+       Var *specPower = (Var*)LangElement::find( "specularPower" );
+       if ( !specPower )
+       {
+           specPower = new Var;
+           specPower->setType( "float" );
+           specPower->setName( "specularPower" );
+           meta->addStatement( new GenOp( "   @ = 1.0;\r\n", new DecOp(specPower)) );
+       }
+       meta->addStatement( new GenOp( "   @*=@.b;\r\n", specPower, matinfo ) );
+       meta->addStatement( new GenOp( "   @.a=@.b;\r\n", glossColor, matinfo ) );
+       // Cube LOD level = (1.0 - Roughness) * 8
+       // mip_levle =  min((1.0 - u_glossiness)*11.0 + 1.0, 8.0)
+       //LangElement *texCube = new GenOp( "texCUBElod( @, float4(@, min((1.0 - (@ / 128.0)) * 11.0 + 1.0, 8.0)) )", cubeMap, reflectVec, specPower );
+       texCube = new GenOp( "texCUBElod( @, float4(@, (@ / 128.0) * 8) )", cubeMap, reflectVec, specPower );
    }
-
-   // Cube LOD level = (1.0 - Roughness) * 8
-   // mip_levle =  min((1.0 - u_glossiness)*11.0 + 1.0, 8.0)
-   //LangElement *texCube = new GenOp( "texCUBElod( @, float4(@, min((1.0 - (@ / 128.0)) * 11.0 + 1.0, 8.0)) )", cubeMap, reflectVec, specPower );
-   LangElement *texCube = new GenOp( "texCUBElod( @, float4(@, (@ / 128.0) * 8) )", cubeMap, reflectVec, specPower );
+   else texCube = new GenOp( "texCUBE( @, @)", cubeMap, reflectVec );
 
    LangElement *lerpVal = NULL;
    Material::BlendOp blendOp = Material::LerpAlpha;
@@ -1907,22 +1927,27 @@ void ReflectCubeFeatHLSL::setTexData(  Material::StageData &stageDat,
        !passData.mFeatureData.features[MFT_NormalMap] )
    {
       GFXTextureObject *tex = stageDat.getTex( MFT_DetailMap );
-      if (  tex &&
-            (stageFeatures.features[MFT_DiffuseMap] || stageFeatures.features[MFT_DeferredDiffuseMap]) )
+      if (  tex && (stageFeatures.features[MFT_DiffuseMap] || stageFeatures.features[MFT_DeferredDiffuseMap]) )
+      {
+         passData.mSamplerNames[ texIndex ] = "diffuseMap";
          passData.mTexSlot[ texIndex++ ].texObject = tex;
+      }
       else
       {
          tex = stageDat.getTex( MFT_NormalMap );
 
-         if (  tex &&
-               stageFeatures.features[ MFT_NormalMap ] )
+         if (  tex && stageFeatures.features[ MFT_NormalMap ] )
+         {
+            passData.mSamplerNames[ texIndex ] = "bumpMap";
             passData.mTexSlot[ texIndex++ ].texObject = tex;
+         }
       }
    }
    
    if( stageDat.getCubemap() )
    {
       passData.mCubeMap = stageDat.getCubemap();
+      passData.mSamplerNames[texIndex] = "cubeMap";
       passData.mTexType[texIndex++] = Material::Cube;
    }
    else
@@ -1930,6 +1955,7 @@ void ReflectCubeFeatHLSL::setTexData(  Material::StageData &stageDat,
       if( stageFeatures.features[MFT_CubeMap] )
       {
          // assuming here that it is a scenegraph cubemap
+         passData.mSamplerNames[texIndex] = "cubeMap";
          passData.mTexType[texIndex++] = Material::SGCube;
       }
    }
@@ -2396,9 +2422,9 @@ void AlphaTestHLSL::processPix(  Vector<ShaderComponent*> &componentList,
    }
 
    // If we don't have a color var then we cannot do an alpha test.
-   Var *color = (Var*)LangElement::find( "col" );
+   Var *color = (Var*)LangElement::find( "col1" );
    if (!color)
-       color = (Var*)LangElement::find( "col1" );
+	   color = (Var*)LangElement::find("col");
    if ( !color )
    {
       output = NULL;

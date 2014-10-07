@@ -285,17 +285,35 @@ bool getFlag(float flags, int num)
    return (fmod(process, pow(2, squareNum)) >= squareNum); 
 }
 
+// #define TORQUE_STOCK_GAMMA
+#ifdef TORQUE_STOCK_GAMMA
 // Sample in linear space. Decodes gamma.
 float4 tex2DLinear(sampler2D tex, float2 texCoord)
 {
-   float4 sample = tex2D(tex, texCoord);
-   return float4(pow(abs(sample.rgb), 2.2), sample.a);
+   float4 sampl = tex2D(tex, texCoord);
+   return sampl;
 }
 
 // Sample in linear space. Decodes gamma.
 float4 tex2DLodLinear(sampler2D tex, float4 texCoord)
 {
-   float4 sample = tex2Dlod(tex, texCoord);
-   return float4(pow(abs(sample.rgb), 2.2), sample.a);
+   float4 sampl = tex2Dlod(tex, texCoord);
+   return sampl;
 }
+#else
+// Sample in linear space. Decodes gamma.
+float4 tex2DLinear(sampler2D tex, float2 texCoord)
+{
+   float4 sampl = tex2D(tex, texCoord);
+   return float4(pow(abs(sampl.rgb), 2.2), sampl.a);
+}
+
+// Sample in linear space. Decodes gamma.
+float4 tex2DLodLinear(sampler2D tex, float4 texCoord)
+{
+   float4 sampl = tex2Dlod(tex, texCoord);
+   return float4(pow(abs(sampl.rgb), 2.2), sampl.a);
+}
+#endif //
+
 #endif // _TORQUE_HLSL_

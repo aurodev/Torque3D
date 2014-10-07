@@ -37,7 +37,7 @@
 #include "gfx/util/screenspace.h"
 #include "lighting/advanced/advancedLightBinManager.h"
 
-S32 sgMaxTerrainMaterialsPerPass = 12;
+S32 sgMaxTerrainMaterialsPerPass = 3;
 
 AFTER_MODULE_INIT( MaterialManager )
 {
@@ -337,7 +337,7 @@ bool TerrainCellMaterial::_createPass( Vector<MaterialInfo*> *materials,
          features.addFeature( MFT_EyeSpaceDepthOut );
          features.addFeature( MFT_PrePassConditioner );
          features.addFeature( MFT_DeferredTerrainBaseMap );        
-         
+
          if ( advancedLightmapSupport )
             features.addFeature( MFT_RenderTarget1_Zero );
       }
@@ -369,7 +369,7 @@ bool TerrainCellMaterial::_createPass( Vector<MaterialInfo*> *materials,
 
       // Now add all the material layer features.
 
-     for ( U32 i=0; i < matCount && !baseOnly; i++ )
+      for ( U32 i=0; i < matCount && !baseOnly; i++ )
       {
          TerrainMaterial *mat = (*materials)[i]->mat;
 
@@ -391,13 +391,13 @@ bool TerrainCellMaterial::_createPass( Vector<MaterialInfo*> *materials,
             if(prePassMat)
                features.addFeature( MFT_DeferredTerrainMacroMap, featureIndex );
             else
-	            features.addFeature( MFT_TerrainMacroMap, featureIndex );
+	         features.addFeature( MFT_TerrainMacroMap, featureIndex );
          }
 
          if(prePassMat)
              features.addFeature( MFT_DeferredTerrainDetailMap, featureIndex );
          else
-            features.addFeature( MFT_TerrainDetailMap, featureIndex );
+         features.addFeature( MFT_TerrainDetailMap, featureIndex );
 
          pass->materials.push_back( (*materials)[i] );
          normalMaps.increment();
@@ -509,7 +509,7 @@ bool TerrainCellMaterial::_createPass( Vector<MaterialInfo*> *materials,
    pass->lightMapTexConst = pass->shader->getShaderConstHandle( "$lightMapTex" );
    pass->oneOverTerrainSize = pass->shader->getShaderConstHandle( "$oneOverTerrainSize" );
    pass->squareSize = pass->shader->getShaderConstHandle( "$squareSize" );
-
+   
    // NOTE: We're assuming rtParams0 here as we know its the only
    // render target we currently get in a terrain material and the
    // DeferredRTLightingFeatHLSL will always use 0.
@@ -533,8 +533,8 @@ bool TerrainCellMaterial::_createPass( Vector<MaterialInfo*> *materials,
       // MFT_TerrainAdditive feature to lerp the
       // output normal with the previous pass.
       //
-      if ( prePassMat )
-         desc.setColorWrites( true, true, false, false );
+      //if ( prePassMat )
+         //desc.setColorWrites( true, true, false, false );
    }
 
    // We write to the zbuffer if this is a prepass
@@ -550,7 +550,6 @@ bool TerrainCellMaterial::_createPass( Vector<MaterialInfo*> *materials,
    if ( pass->baseTexMapConst->isValid() )
    {
       desc.samplers[pass->baseTexMapConst->getSamplerRegister()] = GFXSamplerStateDesc::getWrapLinear();
-      desc.samplers[pass->baseTexMapConst->getSamplerRegister()].inGammaSpace = true;
    }
 
    if ( pass->layerTexConst->isValid() )
@@ -659,7 +658,7 @@ bool TerrainCellMaterial::_createPass( Vector<MaterialInfo*> *materials,
    if ( prePassMat )
       desc.addDesc( RenderPrePassMgr::getOpaqueStenciWriteDesc( false ) );
 
-   // Flip the cull for reflection materials.
+   // Shut off culling for prepass materials (reflection support).
    if ( prePassMat )
       desc.setCullMode( GFXCullNone );
 

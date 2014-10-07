@@ -37,132 +37,159 @@
 //****************************************************************************
 
 // Diffuse Map -> Color Buffer
-void DeferredDiffuseMapHLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
+void DeferredDiffuseMapHLSL::processPix(Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd)
 {
-   // grab connector texcoord register
-   Var *inTex = getInTexCoord( "texCoord", "float2", true, componentList );
+	// grab connector texcoord register
+	Var *inTex = getInTexCoord("texCoord", "float2", true, componentList);
 
-   // create texture var
-   Var *diffuseMap = new Var;
-   diffuseMap->setType( "sampler2D" );
-   diffuseMap->setName( "diffuseMap" );
-   diffuseMap->uniform = true;
-   diffuseMap->sampler = true;
-   diffuseMap->constNum = Var::getTexUnitNum();     // used as texture unit num here
+	// create texture var
+	Var *diffuseMap = new Var;
+	diffuseMap->setType("sampler2D");
+	diffuseMap->setName("diffuseMap");
+	diffuseMap->uniform = true;
+	diffuseMap->sampler = true;
+	diffuseMap->constNum = Var::getTexUnitNum();     // used as texture unit num here
 
-   if (  fd.features[MFT_CubeMap] )
-   {
-      MultiLine * meta = new MultiLine;
-      
-      // create sample color
-      Var *diffColor = new Var;
-      diffColor->setType( "float4" );
-      diffColor->setName( "diffuseColor" );
-      LangElement *colorDecl = new DecOp( diffColor );
-   
-      meta->addStatement(  new GenOp( "   @ = tex2D(@, @);\r\n", 
+	if (fd.features[MFT_CubeMap])
+	{
+		MultiLine * meta = new MultiLine;
+
+		// create sample color
+		Var *diffColor = new Var;
+		diffColor->setType("float4");
+		diffColor->setName("diffuseColor");
+		LangElement *colorDecl = new DecOp(diffColor);
+
+
+      if (  fd.features[MFT_Imposter] )
+      {
+          meta->addStatement(  new GenOp( "   @ = tex2D(@, @);\r\n", 
                            colorDecl, 
                            diffuseMap, 
                            inTex ) );
-      
-      meta->addStatement( new GenOp( "   @;\r\n", assignColor( diffColor, Material::Mul , NULL, ShaderFeature::RenderTarget1 ) ) );
-      output = meta;
-   }
-   else if(fd.features[MFT_DiffuseMapAtlas])
-   {   
-      // Handle atlased textures
-      // http://www.infinity-universe.com/Infinity/index.php?option=com_content&task=view&id=65&Itemid=47
-      MultiLine * meta = new MultiLine;
-      output = meta;
-
-      Var *atlasedTex = new Var;
-      atlasedTex->setName("atlasedTexCoord");
-      atlasedTex->setType("float2");
-      LangElement *atDecl = new DecOp(atlasedTex);
-
-      // Parameters of the texture atlas
-      Var *atParams  = new Var;
-      atParams->setType("float4");
-      atParams->setName("diffuseAtlasParams");
-      atParams->uniform = true;
-      atParams->constSortPos = cspPotentialPrimitive;
-
-      // Parameters of the texture (tile) this object is using in the atlas
-      Var *tileParams  = new Var;
-      tileParams->setType("float4");
-      tileParams->setName("diffuseAtlasTileParams");
-      tileParams->uniform = true;
-      tileParams->constSortPos = cspPotentialPrimitive;
-
-      const bool is_sm3 = (GFX->getPixelShaderVersion() > 2.0f);
-      if(is_sm3)
-      {
-         // Figure out the mip level
-         meta->addStatement(new GenOp("   float2 _dx = ddx(@ * @.z);\r\n", inTex, atParams));
-         meta->addStatement(new GenOp("   float2 _dy = ddy(@ * @.z);\r\n", inTex, atParams));
-         meta->addStatement(new GenOp("   float mipLod = 0.5 * log2(max(dot(_dx, _dx), dot(_dy, _dy)));\r\n"));
-         meta->addStatement(new GenOp("   mipLod = clamp(mipLod, 0.0, @.w);\r\n", atParams));
-
-         // And the size of the mip level
-         meta->addStatement(new GenOp("   float mipPixSz = pow(2.0, @.w - mipLod);\r\n", atParams));
-         meta->addStatement(new GenOp("   float2 mipSz = mipPixSz / @.xy;\r\n", atParams));
       }
       else
       {
-         meta->addStatement(new GenOp("   float2 mipSz = float2(1.0, 1.0);\r\n"));
+          meta->addStatement(  new GenOp( "   @ = tex2DLinear(@, @);\r\n", 
+                           colorDecl, 
+                           diffuseMap, 
+                           inTex ) );
       }
 
-      // Tiling mode
-      // TODO: Select wrap or clamp somehow
-      if( true ) // Wrap
-         meta->addStatement(new GenOp("   @ = frac(@);\r\n", atDecl, inTex));
-      else       // Clamp
-         meta->addStatement(new GenOp("   @ = saturate(@);\r\n", atDecl, inTex));
+		meta->addStatement(new GenOp("   @;\r\n", assignColor(diffColor, Material::Mul, NULL, ShaderFeature::RenderTarget1)));
+		output = meta;
+	}
+	else if (fd.features[MFT_DiffuseMapAtlas])
+	{
+		// Handle atlased textures
+		// http://www.infinity-universe.com/Infinity/index.php?option=com_content&task=view&id=65&Itemid=47
+		MultiLine * meta = new MultiLine;
+		output = meta;
 
-      // Finally scale/offset, and correct for filtering
-      meta->addStatement(new GenOp("   @ = @ * ((mipSz * @.xy - 1.0) / mipSz) + 0.5 / mipSz + @.xy * @.xy;\r\n", 
-         atlasedTex, atlasedTex, atParams, atParams, tileParams));
+		Var *atlasedTex = new Var;
+		atlasedTex->setName("atlasedTexCoord");
+		atlasedTex->setType("float2");
+		LangElement *atDecl = new DecOp(atlasedTex);
 
-      // Add a newline
-      meta->addStatement(new GenOp( "\r\n"));
+		// Parameters of the texture atlas
+		Var *atParams = new Var;
+		atParams->setType("float4");
+		atParams->setName("diffuseAtlasParams");
+		atParams->uniform = true;
+		atParams->constSortPos = cspPotentialPrimitive;
 
-      // For the rest of the feature...
-      inTex = atlasedTex;
+		// Parameters of the texture (tile) this object is using in the atlas
+		Var *tileParams = new Var;
+		tileParams->setType("float4");
+		tileParams->setName("diffuseAtlasTileParams");
+		tileParams->uniform = true;
+		tileParams->constSortPos = cspPotentialPrimitive;
 
-      // create sample color var
-      Var *diffColor = new Var;
-      diffColor->setType("float4");
-      diffColor->setName("diffuseColor");
+		const bool is_sm3 = (GFX->getPixelShaderVersion() > 2.0f);
+		if (is_sm3)
+		{
+			// Figure out the mip level
+			meta->addStatement(new GenOp("   float2 _dx = ddx(@ * @.z);\r\n", inTex, atParams));
+			meta->addStatement(new GenOp("   float2 _dy = ddy(@ * @.z);\r\n", inTex, atParams));
+			meta->addStatement(new GenOp("   float mipLod = 0.5 * log2(max(dot(_dx, _dx), dot(_dy, _dy)));\r\n"));
+			meta->addStatement(new GenOp("   mipLod = clamp(mipLod, 0.0, @.w);\r\n", atParams));
 
-      // To dump out UV coords...
-//#define DEBUG_ATLASED_UV_COORDS
+			// And the size of the mip level
+			meta->addStatement(new GenOp("   float mipPixSz = pow(2.0, @.w - mipLod);\r\n", atParams));
+			meta->addStatement(new GenOp("   float2 mipSz = mipPixSz / @.xy;\r\n", atParams));
+		}
+		else
+		{
+			meta->addStatement(new GenOp("   float2 mipSz = float2(1.0, 1.0);\r\n"));
+		}
+
+		// Tiling mode
+		// TODO: Select wrap or clamp somehow
+		if (true) // Wrap
+			meta->addStatement(new GenOp("   @ = frac(@);\r\n", atDecl, inTex));
+		else       // Clamp
+			meta->addStatement(new GenOp("   @ = saturate(@);\r\n", atDecl, inTex));
+
+		// Finally scale/offset, and correct for filtering
+		meta->addStatement(new GenOp("   @ = @ * ((mipSz * @.xy - 1.0) / mipSz) + 0.5 / mipSz + @.xy * @.xy;\r\n",
+			atlasedTex, atlasedTex, atParams, atParams, tileParams));
+
+		// Add a newline
+		meta->addStatement(new GenOp("\r\n"));
+
+		// For the rest of the feature...
+		inTex = atlasedTex;
+
+		// create sample color var
+		Var *diffColor = new Var;
+		diffColor->setType("float4");
+		diffColor->setName("diffuseColor");
+
+		// To dump out UV coords...
+		//#define DEBUG_ATLASED_UV_COORDS
 #ifdef DEBUG_ATLASED_UV_COORDS
-      if(!fd.features[MFT_PrePassConditioner])
-      {
-         meta->addStatement(new GenOp("   @ = float4(@.xy, mipLod / @.w, 1.0);\r\n", new DecOp(diffColor), inTex, atParams));
-         meta->addStatement(new GenOp("   @; return OUT;\r\n", assignColor(diffColor, Material::Mul)));
-         return;
-      }
+		if (!fd.features[MFT_PrePassConditioner])
+		{
+			meta->addStatement(new GenOp("   @ = float4(@.xy, mipLod / @.w, 1.0);\r\n", new DecOp(diffColor), inTex, atParams));
+			meta->addStatement(new GenOp("   @; return OUT;\r\n", assignColor(diffColor, Material::Mul)));
+			return;
+		}
 #endif
 
       if(is_sm3)
       {
-         meta->addStatement(new GenOp( "   @ = tex2Dlod(@, float4(@, 0.0, mipLod));\r\n", 
-            new DecOp(diffColor), diffuseMap, inTex));
+          if (  fd.features[MFT_Imposter] )
+              meta->addStatement(new GenOp( "   @ = tex2Dlod(@, float4(@, 0.0, mipLod));\r\n", 
+              new DecOp(diffColor), diffuseMap, inTex));
+          else
+              meta->addStatement(new GenOp( "   @ = tex2DlodLinear(@, float4(@, 0.0, mipLod));\r\n", 
+              new DecOp(diffColor), diffuseMap, inTex));
       }
       else
       {
-         meta->addStatement(new GenOp( "   @ = tex2D(@, @);\r\n", 
-            new DecOp(diffColor), diffuseMap, inTex));
+          if (  fd.features[MFT_Imposter] )
+              meta->addStatement(new GenOp( "   @ = tex2D(@, @);\r\n",
+                    new DecOp(diffColor), diffuseMap, inTex)); 
+          else
+              meta->addStatement(new GenOp( "   @ = tex2DLinear(@, @);\r\n",
+                    new DecOp(diffColor), diffuseMap, inTex)); 
       }
 
-      meta->addStatement(new GenOp( "   @;\r\n", assignColor(diffColor, Material::Mul, NULL, ShaderFeature::RenderTarget1)));
-   }
-   else
-   {
-       LangElement *statement = new GenOp( "tex2D(@, @)", diffuseMap, inTex );
-       output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul, NULL, ShaderFeature::RenderTarget1 ) );
-   }
+		meta->addStatement(new GenOp("   @;\r\n", assignColor(diffColor, Material::Mul, NULL, ShaderFeature::RenderTarget1)));
+	}
+	else
+	{
+       if (  fd.features[MFT_Imposter] )
+       {
+           LangElement *statement = new GenOp( "tex2D(@, @)", diffuseMap, inTex );
+           output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul, NULL, ShaderFeature::RenderTarget1 ) );
+       }
+       else
+       {
+           LangElement *statement = new GenOp( "tex2DLinear(@, @)", diffuseMap, inTex );
+           output = new GenOp( "   @;\r\n", assignColor( statement, Material::Mul, NULL, ShaderFeature::RenderTarget1 ) );
+       }
+	}
 }
 
 ShaderFeature::Resources DeferredDiffuseMapHLSL::getResources( const MaterialFeatureData &fd )
@@ -179,9 +206,12 @@ void DeferredDiffuseMapHLSL::setTexData(   Material::StageData &stageDat,
                                        RenderPassData &passData,
                                        U32 &texIndex )
 {
-   GFXTextureObject *tex = stageDat.getTex( MFT_DiffuseMap );
-   if ( tex )
-      passData.mTexSlot[ texIndex++ ].texObject = tex;
+   GFXTextureObject *tex = stageDat.getTex(MFT_DiffuseMap);
+   if (tex)
+   {
+	   passData.mSamplerNames[texIndex] = "diffuseMap";
+	   passData.mTexSlot[texIndex++].texObject = tex;
+   }
 }
 
 void DeferredDiffuseMapHLSL::processVert( Vector<ShaderComponent*> &componentList, 
@@ -217,21 +247,21 @@ void DeferredEmptyColorHLSL::processPix( Vector<ShaderComponent*> &componentList
    output = new GenOp( "   @;\r\n", assignColor( new GenOp( "1.0" ), Material::None, NULL, ShaderFeature::RenderTarget1 ) );
 }
 
-// Specular Map -> Alpha of Color Buffer ( greyscaled )
+// Specular Map -> Blue of Material Buffer ( greyscaled )
 void DeferredSpecMapHLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
 {
    // Get the texture coord.
    Var *texCoord = getInTexCoord( "texCoord", "float2", true, componentList );
 
    // search for color var
-   Var *color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget1) );
-   if ( !color )
+   Var *material = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+   if ( !material )
    {
       // create color var
-      color = new Var;
-      color->setType( "fragout" );
-      color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget1) );
-      color->setStructName( "OUT" );
+      material = new Var;
+      material->setType( "fragout" );
+      material->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+      material->setStructName( "OUT" );
    }
 
    // create texture var
@@ -243,7 +273,7 @@ void DeferredSpecMapHLSL::processPix( Vector<ShaderComponent*> &componentList, c
    specularMap->constNum = Var::getTexUnitNum();
    LangElement *texOp = new GenOp( "tex2D(@, @)", specularMap, texCoord );
 
-   output = new GenOp( "   @.a = dot(tex2D(@, @).rgb, float3(0.3, 0.59, 0.11));\r\n", color, specularMap, texCoord );
+   output = new GenOp( "   @.b = dot(tex2D(@, @).rgb, float3(0.3, 0.59, 0.11));\r\n", material, specularMap, texCoord );
 }
 
 ShaderFeature::Resources DeferredSpecMapHLSL::getResources( const MaterialFeatureData &fd )
@@ -264,6 +294,7 @@ void DeferredSpecMapHLSL::setTexData(   Material::StageData &stageDat,
    if ( tex )
    {
       passData.mTexType[ texIndex ] = Material::Standard;
+      passData.mSamplerNames[ texIndex ] = "specularMap";
       passData.mTexSlot[ texIndex++ ].texObject = tex;
    }
 }
@@ -281,7 +312,7 @@ void DeferredSpecMapHLSL::processVert( Vector<ShaderComponent*> &componentList,
    output = meta;
 }
 
-// Specular Color -> Alpha of Color Buffer ( greyscaled )
+// Specular Color -> Blue of Material Buffer ( greyscaled )
 void DeferredSpecColorHLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
 {
    Var *specularColor = (Var*)LangElement::find( "specularColor" );
@@ -291,54 +322,21 @@ void DeferredSpecColorHLSL::processPix( Vector<ShaderComponent*> &componentList,
       specularColor->uniform = true;
       specularColor->constSortPos = cspPotentialPrimitive;
    }
- 
-   Var *color = (Var*)LangElement::find(getOutputTargetVarName(ShaderFeature::RenderTarget1));
-   if (!color)
+
+   Var *material = (Var*)LangElement::find(getOutputTargetVarName(ShaderFeature::RenderTarget2));
+   if (!material)
    {
-           // create color var
-           color = new Var;
-           color->setType("fragout");
-           color->setName(getOutputTargetVarName(ShaderFeature::RenderTarget1));
-           color->setStructName("OUT");
+	   // create color var
+	   material = new Var;
+	   material->setType("fragout");
+	   material->setName(getOutputTargetVarName(ShaderFeature::RenderTarget2));
+	   material->setStructName("OUT");
    }
    
-   output = new GenOp("   @.a = dot(@.rgb, float3(0.3, 0.59, 0.11));\r\n", color, specularColor);
+   output = new GenOp("   @.b = dot(@.rgb, float3(0.3, 0.59, 0.11));\r\n", material, specularColor);
 }
 
-// Black -> Alpha of Color Buffer (representing no specular)
-void DeferredEmptySpecHLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
-{
-   // Get the texture coord.
-   Var *texCoord = getInTexCoord( "texCoord", "float2", true, componentList );
-
-   // search for color var
-   Var *color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget1) );
-   if ( !color )
-   {
-      // create color var
-      color = new Var;
-      color->setType( "fragout" );
-      color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget1) );
-      color->setStructName( "OUT" );
-   }
-
-   output = new GenOp( "   @.a = 0.0;\r\n", color );
-}
-
-void DeferredEmptySpecHLSL::processVert( Vector<ShaderComponent*> &componentList, 
-                                       const MaterialFeatureData &fd )
-{
-   MultiLine *meta = new MultiLine;
-   getOutTexCoord(   "texCoord", 
-                     "float2", 
-                     true, 
-                     fd.features[MFT_TexAnim], 
-                     meta, 
-                     componentList );
-   output = meta;
-}
-
-// Gloss Map (Alpha Channel of Specular Map) -> Blue ( Spec Power ) of Material Info Buffer.
+// Gloss Map (Alpha Channel of Specular Map) -> Alpha ( Spec Power ) of Material Info Buffer.
 void DeferredGlossMapHLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
 {
    // Get the texture coord.
@@ -367,21 +365,21 @@ void DeferredGlossMapHLSL::processPix( Vector<ShaderComponent*> &componentList, 
    }
    LangElement *texOp = new GenOp( "tex2D(@, @)", specularMap, texCoord );
 
-   output = new GenOp( "   @.b = @.a;\r\n", color, texOp );
+   output = new GenOp( "   @.a = @.a;\r\n", color, texOp );
 }
 
 // Material Info Flags -> Red ( Flags ) of Material Info Buffer.
 void DeferredMatInfoFlagsHLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
 {
-   // search for color var
-   Var *color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-   if ( !color )
+   // search for material var
+   Var *material = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+   if ( !material )
    {
-      // create color var
-      color = new Var;
-      color->setType( "fragout" );
-      color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-      color->setStructName( "OUT" );
+      // create material var
+      material = new Var;
+      material->setType( "fragout" );
+      material->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+      material->setStructName( "OUT" );
    }
 
    Var *matInfoFlags = new Var;
@@ -390,21 +388,21 @@ void DeferredMatInfoFlagsHLSL::processPix( Vector<ShaderComponent*> &componentLi
    matInfoFlags->uniform = true;
    matInfoFlags->constSortPos = cspPotentialPrimitive;
 
-   output = new GenOp( "   @.r = @;\r\n", color, matInfoFlags );
+   output = new GenOp( "   @.r = @;\r\n", material, matInfoFlags );
 }
 
-// Spec Strength -> Alpha Channel of Material Info Buffer.
+// Spec Strength -> Blue Channel of Material Info Buffer.
 void DeferredSpecStrengthHLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
 {
-   // search for color var
-   Var *color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-   if ( !color )
+   // search for material var
+   Var *material = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+   if ( !material )
    {
-      // create color var
-      color = new Var;
-      color->setType( "fragout" );
-      color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-      color->setStructName( "OUT" );
+      // create material var
+      material = new Var;
+      material->setType( "fragout" );
+      material->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+      material->setStructName( "OUT" );
    }
 
    Var *specStrength = new Var;
@@ -413,21 +411,24 @@ void DeferredSpecStrengthHLSL::processPix( Vector<ShaderComponent*> &componentLi
    specStrength->uniform = true;
    specStrength->constSortPos = cspPotentialPrimitive;
 
-   output = new GenOp( "   @.a = @;\r\n", color, specStrength );
+   if (fd.features[MFT_DeferredSpecMap])
+       output = new GenOp( "   @.b *= @;\r\n", material, specStrength );
+   else
+       output = new GenOp( "   @.b = @;\r\n", material, specStrength );
 }
 
-// Spec Power -> Blue Channel ( of Material Info Buffer.
+// Spec Power -> Alpha Channel ( of Material Info Buffer.
 void DeferredSpecPowerHLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
 {
-   // search for color var
-   Var *color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-   if ( !color )
+   // search for material var
+   Var *material = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+   if ( !material )
    {
-      // create color var
-      color = new Var;
-      color->setType( "fragout" );
-      color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-      color->setStructName( "OUT" );
+      // create material var
+      material = new Var;
+      material->setType( "fragout" );
+      material->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+      material->setStructName( "OUT" );
    }
 
    Var *specPower = new Var;
@@ -436,7 +437,31 @@ void DeferredSpecPowerHLSL::processPix( Vector<ShaderComponent*> &componentList,
    specPower->uniform = true;
    specPower->constSortPos = cspPotentialPrimitive;
 
-   output = new GenOp( "   @ = float4(0.0, 0.0, @ / 128.0, 0.0);\r\n", color, specPower );
+   if (fd.features[MFT_DeferredGlossMap])
+       output = new GenOp( "   @.a *= @;\r\n", material, specPower );
+   else
+       output = new GenOp( "   @.a = @;\r\n", material, specPower );
+
+}
+
+// Black -> Blue and Alpha of Color Buffer (representing no specular)
+void DeferredEmptySpecHLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
+{
+   // Get the texture coord.
+   Var *texCoord = getInTexCoord( "texCoord", "float2", true, componentList );
+
+   // search for color var
+   Var *color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+   if ( !color )
+   {
+       // create color var
+      color = new Var;
+      color->setType( "fragout" );
+      color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+      color->setStructName( "OUT" );
+   }
+   
+   output = new GenOp( "   @.ba = 0.0;\r\n", color );
 }
 
 // Emissive -> Material Info Buffer.
@@ -452,14 +477,14 @@ void DeferredTranslucencyMapHLSL::processPix( Vector<ShaderComponent*> &componen
    Var *texCoord = getInTexCoord( "texCoord", "float2", true, componentList );
 
    // search for color var
-   Var *color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-   if ( !color )
+   Var *material = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+   if ( !material )
    {
       // create color var
-      color = new Var;
-      color->setType( "fragout" );
-      color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-      color->setStructName( "OUT" );
+      material = new Var;
+      material->setType( "fragout" );
+      material->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+      material->setStructName( "OUT" );
    }
 
    // create texture var
@@ -470,7 +495,7 @@ void DeferredTranslucencyMapHLSL::processPix( Vector<ShaderComponent*> &componen
    translucencyMap->sampler = true;
    translucencyMap->constNum = Var::getTexUnitNum();
 
-   output = new GenOp( "   @.g = dot(tex2D(@, @).rgb, float3(0.3, 0.59, 0.11));\r\n", color, translucencyMap, texCoord );
+   output = new GenOp( "   @.g = dot(tex2D(@, @).rgb, float3(0.3, 0.59, 0.11));\r\n", material, translucencyMap, texCoord );
    
 }
 
@@ -492,6 +517,7 @@ void DeferredTranslucencyMapHLSL::setTexData(   Material::StageData &stageDat,
    if ( tex )
    {
       passData.mTexType[ texIndex ] = Material::Standard;
+      passData.mSamplerNames[ texIndex ] = "translucencyMap";
       passData.mTexSlot[ texIndex++ ].texObject = tex;
    }
 }
@@ -499,17 +525,17 @@ void DeferredTranslucencyMapHLSL::setTexData(   Material::StageData &stageDat,
 // Tranlucency -> Green of Material Info Buffer.
 void DeferredTranslucencyEmptyHLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
 {
-   // search for color var
-   Var *color = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-   if ( !color )
+   // search for material var
+   Var *material = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+   if ( !material )
    {
       // create color var
-      color = new Var;
-      color->setType( "fragout" );
-      color->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
-      color->setStructName( "OUT" );
+      material = new Var;
+      material->setType( "fragout" );
+      material->setName( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
+      material->setStructName( "OUT" );
    }
-   output = new GenOp( "   @.g = 0.0;\r\n", color );
+   output = new GenOp( "   @.g = 0.0;\r\n", material );
    
 }
 

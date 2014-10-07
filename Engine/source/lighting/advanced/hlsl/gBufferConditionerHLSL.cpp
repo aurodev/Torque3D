@@ -19,8 +19,9 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
-
-#include "platform/platform.h"
+//MGT: mac code changes
+#include <platform/platform.h>
+//MGT:end
 #include "lighting/advanced/hlsl/gBufferConditionerHLSL.h"
 
 #include "shaderGen/featureMgr.h"
@@ -164,7 +165,7 @@ void GBufferConditionerHLSL::processPix(  Vector<ShaderComponent*> &componentLis
    if ( fd.features[ MFT_IsTranslucentZWrite ] )
    {
       alphaVal = new Var( "outAlpha", "float" );
-      meta->addStatement( new GenOp( "   @ = OUT.col.a; // MFT_IsTranslucentZWrite\r\n", new DecOp( alphaVal ) ) );
+      meta->addStatement( new GenOp( "   @ = OUT.col1.a; // MFT_IsTranslucentZWrite\r\n", new DecOp( alphaVal ) ) );
    }
 
    // If using interlaced normals, invert the normal
