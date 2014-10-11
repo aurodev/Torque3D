@@ -48,7 +48,7 @@ void main()
    color.rgb = pow( abs(color.rgb), vec3(OneOverGamma) );
 
    // Apply contrast
-   color.rgb = ((color.rgb - 0.5f) * Contrast) + 0.25f;
+   color.rgb = ((color.rgb - 0.5f) * Contrast) + 0.5f;
  
    // Apply brightness
    color.rgb += Brightness;
