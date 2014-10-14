@@ -411,10 +411,7 @@ void DeferredSpecStrengthHLSL::processPix( Vector<ShaderComponent*> &componentLi
    specStrength->uniform = true;
    specStrength->constSortPos = cspPotentialPrimitive;
 
-   if (fd.features[MFT_DeferredSpecMap])
-       output = new GenOp( "   @.b *= @;\r\n", material, specStrength );
-   else
-       output = new GenOp( "   @.b = @;\r\n", material, specStrength );
+   output = new GenOp( "   @.b = @/128;\r\n", material, specStrength );
 }
 
 // Spec Power -> Alpha Channel ( of Material Info Buffer.
@@ -436,11 +433,7 @@ void DeferredSpecPowerHLSL::processPix( Vector<ShaderComponent*> &componentList,
    specPower->setName( "specularPower" );
    specPower->uniform = true;
    specPower->constSortPos = cspPotentialPrimitive;
-
-   if (fd.features[MFT_DeferredGlossMap])
-       output = new GenOp( "   @.a *= @;\r\n", material, specPower );
-   else
-       output = new GenOp( "   @.a = @;\r\n", material, specPower );
+   output = new GenOp( "   @.a = @/5;\r\n", material, specPower );
 
 }
 
