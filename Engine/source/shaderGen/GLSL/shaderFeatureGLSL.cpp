@@ -1858,7 +1858,6 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
            meta->addStatement( new GenOp( "   @ = 1.0;\r\n", new DecOp(specPower)) );
        }
        meta->addStatement( new GenOp( "   @*=@.b;\r\n", specPower, matinfo ) );
-       meta->addStatement( new GenOp( "   @.a=@.b;\r\n", glossColor, matinfo ) );
        // Cube LOD level = (1.0 - Roughness) * 8
        // mip_levle =  min((1.0 - u_glossiness)*11.0 + 1.0, 8.0)
        //LangElement *texCube = new GenOp( "texCUBElod( @, float4(@, min((1.0 - (@ / 128.0)) * 11.0 + 1.0, 8.0)) )", cubeMap, reflectVec, specPower );
@@ -1872,8 +1871,15 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
 
    // Note that the lerpVal needs to be a float4 so that
    // it will work with the LerpAlpha blend.
-
-   if ( glossColor )
+   
+   if (matinfo)
+   {
+      if (attn)
+         lerpVal = new GenOp("@ * saturate( @ )", matinfo, attn);
+      else
+         lerpVal = new GenOp("@", matinfo);
+   }
+   else if ( glossColor )
    {
       if ( attn )
          lerpVal = new GenOp( "@ * saturate( @ )", glossColor, attn );
@@ -1888,7 +1894,10 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
          blendOp = Material::Mul;
    }
    if (fd.features[MFT_DeferredDiffuseMap])
-       meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal, ShaderFeature::RenderTarget1 ) ) );
+   {
+      Var* targ = (Var*)LangElement::find(getOutputTargetVarName(ShaderFeature::RenderTarget1));
+       meta->addStatement(new GenOp("   @.rgb += @.rgb*lerp( @.rgb, (@).rgb, (@).a);\r\n", targ, targ, targ, texCube, lerpVal));
+   }
    else
         meta->addStatement( new GenOp( "   @;\r\n", assignColor( texCube, blendOp, lerpVal ) ) );         
    output = meta;

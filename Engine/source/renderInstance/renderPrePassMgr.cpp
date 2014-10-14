@@ -596,11 +596,7 @@ void ProcessedPrePassMaterial::_determineFeatures( U32 stageNum,
    if( mStages[stageNum].getTex( MFT_SpecularMap ) )
    {
        newFeatures.addFeature( MFT_DeferredSpecMap );
-       
-       if( mStages[stageNum].getTex( MFT_SpecularMap )->mHasTransparency )
-           newFeatures.addFeature( MFT_DeferredGlossMap);
-       else
-           newFeatures.addFeature( MFT_DeferredSpecPower );
+       newFeatures.addFeature( MFT_DeferredGlossMap);
    }
    else if ( mMaterial->mPixelSpecular[stageNum] )
    {
