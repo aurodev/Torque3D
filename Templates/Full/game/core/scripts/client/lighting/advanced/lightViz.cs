@@ -293,3 +293,51 @@ function toggleBackbufferViz( %enable )
    else if ( !%enable )
       AL_DeferredShading.enable();    
 }
+
+new ShaderData( AL_CoordinatesShader )
+{
+   DXVertexShaderFile = "shaders/common/postFx/postFxV.hlsl";
+   DXPixelShaderFile  = "shaders/common/lighting/advanced/dbgCoordinatesP.hlsl";
+   
+   OGLVertexShaderFile = "shaders/common/postFx/gl/postFxV.glsl";
+   OGLPixelShaderFile  = "shaders/common/lighting/advanced/gl/dbgCoordinatesP.glsl";
+
+   samplerNames[0] = "prepassBuffer";
+   samplerNames[1] = "depthviz";
+   pixVersion = 2.0;
+};
+
+singleton PostEffect( AL_Coordinates )
+{   
+   shader = AL_CoordinatesShader;
+   stateBlock = AL_DepthVisualizeState;
+   texture[0] = "#prepass";
+   texture[1] = "depthviz";  
+   target = "$backBuffer";
+   renderPriority = 9999;
+};
+
+function AL_Coordinates::onEnabled( %this )
+{
+   AL_NormalsVisualize.disable();
+   AL_LightColorVisualize.disable();
+   AL_LightSpecularVisualize.disable();
+   $AL_NormalsVisualizeVar = false;
+   $AL_LightColorVisualizeVar = false;
+   $AL_LightSpecularVisualizeVar = false;
+   
+   return true;
+}
+
+function toggleCoordinateViz( %enable )
+{   
+   if ( %enable $= "" )
+   {
+      $AL_CoordinateVisualizeVar = AL_Coordinates.isEnabled() ? false : true;
+      AL_Coordinates.toggle();
+   }
+   else if ( %enable )
+      AL_Coordinates.enable();
+   else if ( !%enable )
+      AL_Coordinates.disable();    
+}
