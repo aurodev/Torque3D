@@ -23,13 +23,16 @@
 #include "shadergen:/autogenConditioners.h"
 #include "../../postfx/postFx.hlsl"
 
+uniform float2 nearFar;
 
 float4 main( PFXVertToPix IN,
              uniform sampler2D prepassBuffer : register(S0),
              uniform sampler1D depthViz : register(S1) ) : COLOR0
 {
    float depth = prepassUncondition( prepassBuffer, IN.uv0 ).w;
-   float3 coords = float3( depth, IN.uv0.x, IN.uv0.y);
-   coords = normalize(coords);
-   return float4( coords, 1.0 );
+   
+   // Interpolated ray pointing to far plane in view space   
+   float3 frustumRayVS = normalize(IN.wsEyeRay) * depth * nearFar.y;
+   
+   return float4( frustumRayVS, 1.0 );
 }

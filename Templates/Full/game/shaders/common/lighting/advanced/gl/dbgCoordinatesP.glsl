@@ -23,14 +23,18 @@
 #include "shadergen:/autogenConditioners.h"
 
 in vec2 uv0;
+in vec3 wsEyeRay;
+uniform vec2 nearFar;
 uniform sampler2D prepassBuffer;
 uniform sampler1D depthViz;
+
 
 out vec4 OUT_FragColor0;
 
 void main()
 {
    float depth = prepassUncondition( prepassBuffer, uv0 ).w;
-   vec3 coords = vec3( depth, uv0.x, uv0.y);   
-   OUT_FragColor0 = vec4( coords, 1.0 );
+   vec3 frustumRayVS = normalize(wsEyeRay) * vec3(depth) * vec3(nearFar.y);
+   
+   OUT_FragColor0 = vec4( frustumRayVS, 1.0 );
 }
