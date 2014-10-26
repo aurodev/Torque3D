@@ -945,10 +945,18 @@ bool GFXGLShader::_loadShaderFromStream(  GLuint shader,
    const char *versionDecl = "#version 150\r\n";
    buffers.push_back( dStrdup( versionDecl ) );
    lengths.push_back( dStrlen( versionDecl ) );
-   
-   const char *extension = "#extension GL_ARB_explicit_attrib_location : enable\r\n";
-   buffers.push_back(dStrdup(extension));
-   lengths.push_back(dStrlen(extension));
+
+#ifndef TORQUE_DEDICATED
+   //support for the Layout Qualifier: https://www.opengl.org/wiki/Layout_Qualifier_(GLSL)
+   if (gglHasExtension(ARB_explicit_attrib_location))
+   {
+      const char *extension = "#extension GL_ARB_explicit_attrib_location : enable\r\n";
+      buffers.push_back(dStrdup(extension));
+      lengths.push_back(dStrlen(extension));
+   }
+   else Con::errorf("Layout functionality not supported!");
+#endif
+
 
    if(gglHasExtension(EXT_gpu_shader4))
    {

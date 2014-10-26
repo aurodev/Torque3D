@@ -207,6 +207,27 @@ bool ProcessedShaderMaterial::init( const FeatureSet &features,
       mInstancingState->setFormat( &_getRPD( 0 )->shader->mInstancingFormat, mVertexFormat );
    }
 
+   // Check for a RenderTexTargetBin assignment
+   // *IMPORTANT NOTE* 
+   // This is a temporary solution for getting diffuse mapping working with tex targets for standard materials
+   // It should be removed once this is done properly, at that time the sAllowTextureTargetAssignment should also be removed 
+   // from Material (it is necessary for catching shadow maps/post effect this shouldn't be applied to)
+   if (Material::sAllowTextureTargetAssignment)
+      if (mMaterial && mMaterial->mDiffuseMapFilename[0].isNotEmpty() && mMaterial->mDiffuseMapFilename[0].substr( 0, 1 ).equal("#"))
+      {
+         String texTargetBufferName = mMaterial->mDiffuseMapFilename[0].substr(1, mMaterial->mDiffuseMapFilename[0].length() - 1);
+         NamedTexTarget *texTarget = NamedTexTarget::find( texTargetBufferName ); 
+
+         RenderPassData* rpd = getPass(0);      
+
+         if (rpd)
+         {
+            rpd->mTexSlot[0].texTarget = texTarget;
+            rpd->mTexType[0] = Material::TexTarget;
+            rpd->mSamplerNames[0] = "diffuseMap";
+         }
+      }
+
    return true;
 }
 
