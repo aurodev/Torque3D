@@ -108,7 +108,8 @@ void GFXD3D9Cubemap::initStatic( GFXTexHandle *faces )
       { 
          D3D9Assert(D3D9Device->CreateCubeTexture(mTexSize, levels, 0, GFXD3D9TextureFormat[mFaceFormat],
             pool, &mCubeTex, NULL), NULL);
-         fillCubeTextures(faces, D3D9Device);
+         for (U32 lev = 0; lev < levels; lev++)
+            fillCubeTextures(faces, D3D9Device, lev);
       }
       else
       {
@@ -206,18 +207,18 @@ void GFXD3D9Cubemap::initDynamic( U32 texSize, GFXFormat faceFormat )
 //-----------------------------------------------------------------------------
 // Fills in face textures of cube map from existing textures
 //-----------------------------------------------------------------------------
-void GFXD3D9Cubemap::fillCubeTextures( GFXTexHandle *faces, LPDIRECT3DDEVICE9 D3DDevice )
+void GFXD3D9Cubemap::fillCubeTextures( GFXTexHandle *faces, LPDIRECT3DDEVICE9 D3DDevice, U32 level )
 {
    for( U32 i=0; i<6; i++ )
    {
       // get cube face surface
       IDirect3DSurface9 *cubeSurf = NULL;
-      D3D9Assert( mCubeTex->GetCubeMapSurface( faceList[i], 0, &cubeSurf ), NULL );
+      D3D9Assert( mCubeTex->GetCubeMapSurface( faceList[i], level, &cubeSurf ), NULL );
 
       // get incoming texture surface
       GFXD3D9TextureObject *texObj = dynamic_cast<GFXD3D9TextureObject*>( (GFXTextureObject*)faces[i] );
       IDirect3DSurface9 *inSurf;
-      D3D9Assert( texObj->get2DTex()->GetSurfaceLevel( 0, &inSurf ), NULL );
+      D3D9Assert( texObj->get2DTex()->GetSurfaceLevel( level, &inSurf ), NULL );
       
       // copy incoming texture into cube face
       D3D9Assert( GFXD3DX.D3DXLoadSurfaceFromSurface( cubeSurf, NULL, NULL, inSurf, NULL, 

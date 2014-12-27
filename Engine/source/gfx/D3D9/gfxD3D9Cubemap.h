@@ -61,7 +61,7 @@ protected:
    U32  mTexSize;
    GFXFormat mFaceFormat;
    
-   void fillCubeTextures( GFXTexHandle *faces, LPDIRECT3DDEVICE9 D3DDevice );
+   void fillCubeTextures(GFXTexHandle *faces, LPDIRECT3DDEVICE9 D3DDevice, U32 levels = 0);
    void releaseSurfaces();
 
    /// The callback used to get texture events.
