@@ -23,6 +23,7 @@
 #include "gfx/D3D9/gfxD3D9Cubemap.h"
 #include "gfx/gfxTextureManager.h"
 #include "gfx/D3D9/gfxD3D9EnumTranslate.h"
+#include "console/console.h"
 
 _D3DCUBEMAP_FACES GFXD3D9Cubemap::faceList[6] = 
 { 
@@ -100,12 +101,22 @@ void GFXD3D9Cubemap::initStatic( GFXTexHandle *faces )
       // NOTE - check tex sizes on all faces - they MUST be all same size
       mTexSize = faces[0].getWidth();
       mFaceFormat = faces[0].getFormat();
+      U32 levels = faces->getPointer()->getMipLevels();
+      Con::errorf("Levels:%d", levels);
 
-      D3D9Assert( D3D9Device->CreateCubeTexture( mTexSize, 0, D3DUSAGE_AUTOGENMIPMAP, GFXD3D9TextureFormat[mFaceFormat],
+      if (levels >1)
+      { 
+         D3D9Assert(D3D9Device->CreateCubeTexture(mTexSize, levels, 0, GFXD3D9TextureFormat[mFaceFormat],
+            pool, &mCubeTex, NULL), NULL);
+         fillCubeTextures(faces, D3D9Device);
+      }
+      else
+      {
+         D3D9Assert( D3D9Device->CreateCubeTexture( mTexSize, 0, D3DUSAGE_AUTOGENMIPMAP, GFXD3D9TextureFormat[mFaceFormat],
                  pool, &mCubeTex, NULL ), NULL );
-
-      fillCubeTextures( faces, D3D9Device );
-      mCubeTex->GenerateMipSubLevels();
+         fillCubeTextures( faces, D3D9Device );
+         mCubeTex->GenerateMipSubLevels();
+      }
    }
 }
 
