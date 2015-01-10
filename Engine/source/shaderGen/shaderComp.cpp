@@ -31,6 +31,8 @@
 ShaderConnector::ShaderConnector()
 {
    mCurTexElem = 0;
+   mCurBlendIndicesElem = 0;
+   mCurBlendWeightsElem = 0;
 }
 
 //----------------------------------------------------------------------------
