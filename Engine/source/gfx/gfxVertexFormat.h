@@ -188,6 +188,9 @@ public:
    /// Returns true if there is a BLENDWEIGHT or BLENDINDICES semantic in this vertex format.
    bool hasBlendIndices() const;
 
+   /// Returns number of blend indices
+   U32 getNumBlendIndices() const;
+
    /// Returns the texture coordinate count by 
    /// counting the number of TEXCOORD semantics.
    U32 getTexCoordCount() const;

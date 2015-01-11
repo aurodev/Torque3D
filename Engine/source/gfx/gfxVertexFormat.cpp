@@ -175,6 +175,27 @@ bool GFXVertexFormat::hasBlendIndices() const
    return mHasBlendIndices;
 }
 
+U32 GFXVertexFormat::getNumBlendIndices() const
+{
+   if ( mDirty )
+      const_cast<GFXVertexFormat*>(this)->_updateDirty();
+   
+   if ( !mHasBlendIndices )
+      return 0;
+
+   U32 numIndices = 0;
+   
+   for ( U32 i=0; i < mElements.size(); i++ )
+   {
+      const GFXVertexElement &element = mElements[i];
+
+      if ( element.isSemantic( GFXSemantic::BLENDINDICES ) )
+         numIndices++;
+   }
+
+   return numIndices;
+}
+
 U32 GFXVertexFormat::getTexCoordCount() const
 {
    if ( mDirty )
