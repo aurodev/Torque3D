@@ -192,13 +192,16 @@ ShapeBaseData::ShapeBaseData()
    observeThroughObject( false ),
    computeCRC( false ),
    inheritEnergyFromMount( false ),
-   mCRC( 0 ),
+   mCRC(0),
+   mIconHandle(NULL),
+   HideIcon(false),
    debrisDetail( -1 ),
    mUseCollisonLods(false),
    mColSets(-1),
    mColSetReport(1)
 {      
    dMemset( mountPointNode, -1, sizeof( S32 ) * SceneObject::NumMountPoints );
+   mIcon = StringTable->insert("");
 
    for (int n=0;n<ShapeStates;n++)
    {
@@ -509,6 +512,8 @@ void ShapeBaseData::initPersistFields()
       addField( "shapeFile", TypeShapeFilename, Offset(shapeName, ShapeBaseData),
          "The DTS or DAE model to use for this object." );
 
+      addField("Icon", TypeFilename, Offset(mIcon, ShapeBaseData));
+      addField("hideIcon", TypeBool, Offset(mHideIcon, ShapeBaseData));
    endGroup( "Render" );
 
    addGroup( "Destruction", "Parameters related to the destruction effects of this object." );
@@ -714,6 +719,8 @@ void ShapeBaseData::packData(BitStream* stream)
    stream->write(mColSetReport);
 
    stream->writeString(shapeName);
+   stream->writeString(mIcon);
+   stream->writeFlag(mHideIcon);
    stream->writeString(cloakTexName);
    if(stream->writeFlag(mass != gShapeBaseDataProto.mass))
       stream->write(mass);
@@ -790,6 +797,13 @@ void ShapeBaseData::unpackData(BitStream* stream)
    mUseCollisonLods = stream->readFlag();
    stream->read(&mColSets);
    stream->read(&mColSetReport);
+
+   shapeName = stream->readSTString();
+   mIcon = stream->readSTString();
+   if ((mIcon) && (mIcon[0])) mIconHandle = GFXTexHandle(mIcon, &GFXDefaultStaticDiffuseProfile, "Adescription");
+
+   mHideIcon = stream->readFlag();
+   cloakTexName = stream->readSTString();
    if(stream->readFlag())
       stream->read(&mass);
    else
