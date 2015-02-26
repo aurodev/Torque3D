@@ -160,6 +160,13 @@ public:
    GFXTextureObject* getAccuTex() const { return mAccuTex; }
 
    /// @}
+   /// @}protected:
+   F32 mMaterialDamage;
+public:
+   const F32 getMaterialDamage() const 
+      { return mMaterialDamage; }
+   void setMaterialDamage(const F32 val)
+      { mMaterialDamage = val; }
 };
 
 #endif // _TSRENDERDATA_H_

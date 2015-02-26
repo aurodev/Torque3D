@@ -102,6 +102,7 @@ DeclareFeatureType( MFT_AccuDirection );
 DeclareFeatureType( MFT_AccuStrength );
 DeclareFeatureType( MFT_AccuCoverage );
 DeclareFeatureType( MFT_AccuSpecular );
+DeclareFeatureType( MFT_DetailAlpha );
 
 /// This feature enables vertex coloring for the diffuse channel.
 DeclareFeatureType( MFT_DiffuseVertColor );

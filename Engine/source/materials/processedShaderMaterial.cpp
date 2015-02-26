@@ -64,6 +64,7 @@ void ShaderConstHandles::init( GFXShader *shader, CustomMaterial* mat /*=NULL*/ 
    mFogDataSC = shader->getShaderConstHandle(ShaderGenVars::fogData);
    mFogColorSC = shader->getShaderConstHandle(ShaderGenVars::fogColor);
    mDetailScaleSC = shader->getShaderConstHandle(ShaderGenVars::detailScale);
+   mDetailAlphaSC = shader->getShaderConstHandle(ShaderGenVars::detailAlpha);
    mVisiblitySC = shader->getShaderConstHandle(ShaderGenVars::visibility);
    mColorMultiplySC = shader->getShaderConstHandle(ShaderGenVars::colorMultiply);
    mAlphaTestValueSC = shader->getShaderConstHandle(ShaderGenVars::alphaTestValue);
@@ -1228,6 +1229,8 @@ void ProcessedShaderMaterial::setSceneInfo(SceneRenderState * state, const Scene
 
    GFXShaderConstBuffer* shaderConsts = _getShaderConstBuffer(pass);
    ShaderConstHandles* handles = _getShaderConstHandles(pass);
+
+   shaderConsts->setSafe( handles->mDetailAlphaSC, sgData.mMaterialDamage);
 
    // Set cubemap stuff here (it's convenient!)
    const Point3F &eyePosWorld = state->getCameraPosition();

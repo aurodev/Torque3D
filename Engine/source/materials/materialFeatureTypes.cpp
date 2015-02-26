@@ -49,6 +49,7 @@ ImplementFeatureType( MFT_DetailNormalMap, MFG_Texture, 10.0f, true );
 ImplementFeatureType( MFT_Imposter, U32(-1), -1, true );
 
 ImplementFeatureType( MFT_AccuMap, MFG_PreLighting, 2.0f, true );
+ImplementFeatureType( MFT_DetailAlpha, MFG_Texture, 1.0f, true );
 
 ImplementFeatureType( MFT_RTLighting, MFG_Lighting, 2.0f, true );
 ImplementFeatureType( MFT_SubSurface, MFG_Lighting, 3.0f, true );
