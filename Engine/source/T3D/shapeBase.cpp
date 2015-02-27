@@ -967,6 +967,7 @@ ShapeBase::ShapeBase()
    mOneOverMass( 1.0f ),
    mMoveMotion( false ),
    mIsAiControlled( false ),
+   mTeamId(0),
    mActiveCollisionset(0)
 {
    mTypeMask |= ShapeBaseObjectType | LightObjectType;   
@@ -1046,6 +1047,10 @@ void ShapeBase::initPersistFields()
    addField( "isAiControlled", TypeBool, Offset(mIsAiControlled, ShapeBase),
       "@brief Is this object AI controlled.\n\n"
       "If True then this object is considered AI controlled and not player controlled.\n" );
+
+   addField( "team", TypeF32, Offset(mTeamId, ShapeBase),
+      "@brief What team is it on?\n\n"
+      "Sets a team for filtering.\n" );
 
    Parent::initPersistFields();
 }
