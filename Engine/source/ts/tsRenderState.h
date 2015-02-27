@@ -160,7 +160,7 @@ public:
    GFXTextureObject* getAccuTex() const { return mAccuTex; }
 
    /// @}
-   /// @}protected:
+protected:
    F32 mMaterialDamage;
 public:
    const F32 getMaterialDamage() const 
