@@ -450,8 +450,9 @@ DefineEngineMethod( GuiListBoxCtrl, getSelectedItems, const char*, (),,
    if( selItems.empty() )
       return StringTable->lookup("-1");
 
-   UTF8 *retBuffer = Con::getReturnBuffer( selItems.size() * 4 );
-   dMemset( retBuffer, 0, selItems.size() * 4 );
+   static const U32 bufSize = selItems.size() * 4;
+   UTF8 *retBuffer = Con::getReturnBuffer( bufSize );
+   dMemset( retBuffer, 0, bufSize );
    Vector<S32>::iterator i = selItems.begin();
    for( ; i != selItems.end(); i++ )
    {
@@ -923,7 +924,7 @@ SimObject* GuiListBoxCtrl::getItemObject( S32 index )
    }
 
    SimObject *outObj;
-   Sim::findObject( (SimObjectId)(mItems[ index ]->itemData), outObj );
+   Sim::findObject( (SimObjectId)(uintptr_t)(mItems[ index ]->itemData), outObj );
 
    return outObj;   
 }
@@ -1480,7 +1481,7 @@ void GuiListBoxCtrl::_mirror()
 
    for ( U32 i = 0; i < mItems.size(); i++ )
    {
-      curId = (SimObjectId)mItems[i]->itemData;
+      curId = (SimObjectId)(uintptr_t)mItems[i]->itemData;
 
       Sim::findObject( curId, curObj );
 
@@ -1514,7 +1515,7 @@ void GuiListBoxCtrl::_mirror()
 
       for ( U32 j = 0; j < mItems.size(); j++ )
       {
-         if ( (SimObjectId)(mItems[j]->itemData) == curId )
+         if ( (SimObjectId)(uintptr_t)(mItems[j]->itemData) == curId )
          {
             found = true;
             break;
@@ -1523,7 +1524,7 @@ void GuiListBoxCtrl::_mirror()
 		
 		for ( U32 j = 0; j < mFilteredItems.size(); j++ )
       {
-         if ( (SimObjectId)(mFilteredItems[j]->itemData) == curId )
+         if ( (SimObjectId)(uintptr_t)(mFilteredItems[j]->itemData) == curId )
          {
             found = true;
             break;

@@ -40,7 +40,6 @@
 // For player object bounds workaround.
 #include "T3D/player.h"
 
-
 extern bool gEditingMission;
 
 
@@ -113,6 +112,7 @@ SceneManager::SceneManager( bool isClient )
      mDisplayTargetResolution( 0, 0 ),
      mDefaultRenderPass( NULL ),
      mVisibleDistance( 500.f ),
+     mVisibleGhostDistance( 0 ),
      mNearClip( 0.1f ),
      mAmbientLightColor( ColorF( 0.1f, 0.1f, 0.1f, 1.0f ) ),
      mZoneManager( NULL )
@@ -156,9 +156,7 @@ void SceneManager::renderScene( ScenePassType passType, U32 objectMask )
    {
       // Store the camera state so if we lock, this will become the
       // locked state.
-
-      if( passType == SPT_Diffuse )
-         smLockedDiffuseCamera = cameraState;
+      smLockedDiffuseCamera = cameraState;
    }
    
    // Create the render state.
@@ -607,6 +605,7 @@ bool SceneManager::addObjectToScene( SceneObject* object )
 
 void SceneManager::removeObjectFromScene( SceneObject* obj )
 {
+   AssertFatal( obj, "SceneManager::removeObjectFromScene - Object is not declared" );
    AssertFatal( obj->getSceneManager() == this, "SceneManager::removeObjectFromScene - Object not part of SceneManager" );
 
    // Notify the object.
@@ -615,7 +614,8 @@ void SceneManager::removeObjectFromScene( SceneObject* obj )
 
    // Remove the object from the container.
 
-   getContainer()->removeObject( obj );
+   if( getContainer() )
+      getContainer()->removeObject( obj );
 
    // Remove the object from the zoning system.
 

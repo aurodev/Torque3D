@@ -351,6 +351,7 @@ void NetConnection::setNetClassGroup(U32 grp)
 }
 
 NetConnection::NetConnection()
+ : mNetAddress()
 {
    mTranslateStrings = false;
    mConnectSequence = 0;
@@ -433,6 +434,9 @@ NetConnection::NetConnection()
 
    // Disable starting a new journal recording or playback from here on
    Journal::Disable();
+
+   // Ensure NetAddress is cleared
+   dMemset(&mNetAddress, '\0', sizeof(NetAddress));
 }
 
 NetConnection::~NetConnection()
@@ -1116,7 +1120,6 @@ void NetConnection::validateSendString(const char *str)
 
 void NetConnection::packString(BitStream *stream, const char *str)
 {
-   char buf[16];
    if(!*str)
    {
       stream->writeInt(NullString, 2);
@@ -1130,6 +1133,7 @@ void NetConnection::packString(BitStream *stream, const char *str)
    }
    if(str[0] == '-' || (str[0] >= '0' && str[0] <= '9'))
    {
+      char buf[16];
       S32 num = dAtoi(str);
       dSprintf(buf, sizeof(buf), "%d", num);
       if(!dStrcmp(buf, str))

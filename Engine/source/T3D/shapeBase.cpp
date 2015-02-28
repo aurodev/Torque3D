@@ -114,11 +114,12 @@ IMPLEMENT_CALLBACK( ShapeBaseData, onTrigger, void, ( ShapeBase* obj, S32 index,
    "@param index Index of the trigger that changed\n"
    "@param state New state of the trigger\n" );
 
-IMPLEMENT_CALLBACK( ShapeBaseData, onEndSequence, void, ( ShapeBase* obj, S32 slot ), ( obj, slot ),
+IMPLEMENT_CALLBACK(ShapeBaseData, onEndSequence, void, (ShapeBase* obj, S32 slot, const char* name), (obj, slot, name),
    "@brief Called when a thread playing a non-cyclic sequence reaches the end of the "
    "sequence.\n\n"
    "@param obj The ShapeBase object\n"
-   "@param slot Thread slot that finished playing\n" );
+   "@param slot Thread slot that finished playing\n"
+   "@param name Thread name that finished playing\n");
 
 IMPLEMENT_CALLBACK( ShapeBaseData, onForceUncloak, void, ( ShapeBase* obj, const char* reason ), ( obj, reason ),
    "@brief Called when the object is forced to uncloak.\n\n"
@@ -306,7 +307,10 @@ bool ShapeBaseData::preload(bool server, String &errorStr)
          Torque::FS::FileNodeRef    fileRef = Torque::FS::GetFileNode(mShape.getPath());
 
          if (!fileRef)
+         {
+            errorStr = String::ToString("ShapeBaseData: Couldn't load shape \"%s\"",shapeName);
             return false;
+         }
 
          if(server)
             mCRC = fileRef->getChecksum();
@@ -703,7 +707,7 @@ void ShapeBaseData::packData(BitStream* stream)
 
    if( stream->writeFlag( debris != NULL ) )
    {
-      stream->writeRangedU32(packed? SimObjectId(debris):
+      stream->writeRangedU32(packed? SimObjectId((uintptr_t)debris):
                              debris->getId(),DataBlockObjectIdFirst,DataBlockObjectIdLast);
    }
 
@@ -898,17 +902,9 @@ ShapeBase::ShapeBase()
    mCloakLevel( 0.0f ),
    mDamageFlash( 0.0f ),
    mWhiteOut( 0.0f ),
-   mInvincibleEffect( 0.0f ),
-   mInvincibleDelta( 0.0f ),
-   mInvincibleCount( 0.0f ),
-   mInvincibleSpeed( 0.0f ),
-   mInvincibleTime( 0.0f ),
-   mInvincibleFade( 0.1f ),
-   mInvincibleOn( false ),
    mIsControlled( false ),
    mConvexList( new Convex ),
    mCameraFov( 90.0f ),
-   mShieldNormal( 0.0f, 0.0f, 1.0f ),
    mFadeOut( true ),
    mFading( false ),
    mFadeVal( 1.0f ),
@@ -936,7 +932,6 @@ ShapeBase::ShapeBase()
    for (i = 0; i < MaxScriptThreads; i++) {
       mScriptThread[i].sequence = -1;
       mScriptThread[i].thread = 0;
-      mScriptThread[i].sound = 0;
       mScriptThread[i].state = Thread::Stop;
       mScriptThread[i].atEnd = false;
 	   mScriptThread[i].timescale = 1.f;
@@ -945,8 +940,6 @@ ShapeBase::ShapeBase()
 
    for (i = 0; i < MaxTriggerKeys; i++)
       mTrigger[i] = false;
-
-   mWeaponCamShake = NULL;
 }
 
 
@@ -1068,15 +1061,7 @@ void ShapeBase::onRemove()
 
    if ( isClientObject() )   
    {
-      mCubeReflector.unregisterReflector();      
-
-      if ( mWeaponCamShake )
-      {
-         if ( mWeaponCamShake->isAdded )
-            gCamFXMgr.removeFX( mWeaponCamShake );
-
-         SAFE_DELETE( mWeaponCamShake );
-      }
+      mCubeReflector.unregisterReflector();
    }
 }
 
@@ -1282,7 +1267,7 @@ void ShapeBase::processTick(const Move* move)
       {
          mMoveMotion = true;
       }
-      for (int i = 0; i < MaxMountedImages; i++)
+      for (S32 i = 0; i < MaxMountedImages; i++)
       {
          setImageMotionState(i, mMoveMotion);
       }
@@ -1305,7 +1290,7 @@ void ShapeBase::processTick(const Move* move)
    // Advance images
    if (isServerObject())
    {
-      for (int i = 0; i < MaxMountedImages; i++)
+      for (S32 i = 0; i < MaxMountedImages; i++)
       {
          if (mMountedImageList[i].dataBlock)
             updateImageState(i, TickSec);
@@ -1347,7 +1332,7 @@ void ShapeBase::advanceTime(F32 dt)
    // advanced at framerate.
    advanceThreads(dt);
    updateAudioPos();
-   for (int i = 0; i < MaxMountedImages; i++)
+   for (S32 i = 0; i < MaxMountedImages; i++)
       if (mMountedImageList[i].dataBlock)
       {
          updateImageState(i, dt);
@@ -1382,9 +1367,6 @@ void ShapeBase::advanceTime(F32 dt)
             mCloakLevel = 0.0;
       }
    }
-   if(mInvincibleOn)
-      updateInvincibleEffect(dt);
-
    if(mFading)
    {
       mFadeElapsedTime += dt;
@@ -1987,119 +1969,6 @@ void ShapeBase::getCameraTransform(F32* pos,MatrixF* mat)
    mat->mul( gCamFXMgr.getTrans() );
 }
 
-// void ShapeBase::getCameraTransform(F32* pos,MatrixF* mat)
-// {
-//    // Returns camera to world space transform
-//    // Handles first person / third person camera position
-
-//    if (isServerObject() && mShapeInstance)
-//       mShapeInstance->animateNodeSubtrees(true);
-
-//    if (*pos != 0) {
-//       F32 min,max;
-//       Point3F offset;
-//       MatrixF eye,rot;
-//       getCameraParameters(&min,&max,&offset,&rot);
-//       getRenderEyeTransform(&eye);
-//       mat->mul(eye,rot);
-
-//       // Use the eye transform to orient the camera
-//       VectorF vp,vec;
-//       vp.x = vp.z = 0;
-//       vp.y = -(max - min) * *pos;
-//       eye.mulV(vp,&vec);
-
-//       // Use the camera node's pos.
-//       Point3F osp,sp;
-//       if (mDataBlock->cameraNode != -1) {
-//          mShapeInstance->mNodeTransforms[mDataBlock->cameraNode].getColumn(3,&osp);
-//          getRenderTransform().mulP(osp,&sp);
-//       }
-//       else
-//          getRenderTransform().getColumn(3,&sp);
-
-//       // Make sure we don't extend the camera into anything solid
-//       Point3F ep = sp + vec;
-//       ep += offset;
-//       disableCollision();
-//       if (isMounted())
-//          getObjectMount()->disableCollision();
-//       RayInfo collision;
-//       if (mContainer->castRay(sp,ep,(0xFFFFFFFF & ~(WaterObjectType|ForceFieldObjectType|GameBaseObjectType|DefaultObjectType)),&collision)) {
-//          *pos = collision.t *= 0.9;
-//          if (*pos == 0)
-//             eye.getColumn(3,&ep);
-//          else
-//             ep = sp + vec * *pos;
-//       }
-//       mat->setColumn(3,ep);
-//       if (isMounted())
-//          getObjectMount()->enableCollision();
-//       enableCollision();
-//    }
-//    else
-//    {
-//       getRenderEyeTransform(mat);
-//    }
-// }
-
-
-// void ShapeBase::getRenderCameraTransform(F32* pos,MatrixF* mat)
-// {
-//    // Returns camera to world space transform
-//    // Handles first person / third person camera position
-
-//    if (isServerObject() && mShapeInstance)
-//       mShapeInstance->animateNodeSubtrees(true);
-
-//    if (*pos != 0) {
-//       F32 min,max;
-//       Point3F offset;
-//       MatrixF eye,rot;
-//       getCameraParameters(&min,&max,&offset,&rot);
-//       getRenderEyeTransform(&eye);
-//       mat->mul(eye,rot);
-
-//       // Use the eye transform to orient the camera
-//       VectorF vp,vec;
-//       vp.x = vp.z = 0;
-//       vp.y = -(max - min) * *pos;
-//       eye.mulV(vp,&vec);
-
-//       // Use the camera node's pos.
-//       Point3F osp,sp;
-//       if (mDataBlock->cameraNode != -1) {
-//          mShapeInstance->mNodeTransforms[mDataBlock->cameraNode].getColumn(3,&osp);
-//          getRenderTransform().mulP(osp,&sp);
-//       }
-//       else
-//          getRenderTransform().getColumn(3,&sp);
-
-//       // Make sure we don't extend the camera into anything solid
-//       Point3F ep = sp + vec;
-//       ep += offset;
-//       disableCollision();
-//       if (isMounted())
-//          getObjectMount()->disableCollision();
-//       RayInfo collision;
-//       if (mContainer->castRay(sp,ep,(0xFFFFFFFF & ~(WaterObjectType|ForceFieldObjectType|GameBaseObjectType|DefaultObjectType)),&collision)) {
-//          *pos = collision.t *= 0.9;
-//          if (*pos == 0)
-//             eye.getColumn(3,&ep);
-//          else
-//             ep = sp + vec * *pos;
-//       }
-//       mat->setColumn(3,ep);
-//       if (isMounted())
-//          getObjectMount()->enableCollision();
-//       enableCollision();
-//    }
-//    else
-//    {
-//       getRenderEyeTransform(mat);
-//    }
-// }
-
 void ShapeBase::getCameraParameters(F32 *min,F32* max,Point3F* off,MatrixF* rot)
 {
    *min = mDataBlock->cameraMinDist;
@@ -2153,52 +2022,6 @@ bool ShapeBase::useObjsEyePoint() const
    return mDataBlock->useEyePoint;
 }
 
-
-//----------------------------------------------------------------------------
-F32 ShapeBase::getInvincibleEffect() const
-{
-   return mInvincibleEffect;
-}
-
-void ShapeBase::setupInvincibleEffect(F32 time, F32 speed)
-{
-   if(isClientObject())
-   {
-      mInvincibleCount = mInvincibleTime = time;
-      mInvincibleSpeed = mInvincibleDelta = speed;
-      mInvincibleEffect = 0.0f;
-      mInvincibleOn = true;
-      mInvincibleFade = 1.0f;
-   }
-   else
-   {
-      mInvincibleTime  = time;
-      mInvincibleSpeed = speed;
-      setMaskBits(InvincibleMask);
-   }
-}
-
-void ShapeBase::updateInvincibleEffect(F32 dt)
-{
-   if(mInvincibleCount > 0.0f )
-   {
-      if(mInvincibleEffect >= ((0.3 * mInvincibleFade) + 0.05f) && mInvincibleDelta > 0.0f)
-         mInvincibleDelta = -mInvincibleSpeed;
-      else if(mInvincibleEffect <= 0.05f && mInvincibleDelta < 0.0f)
-      {
-         mInvincibleDelta = mInvincibleSpeed;
-         mInvincibleFade = mInvincibleCount / mInvincibleTime;
-      }
-      mInvincibleEffect += mInvincibleDelta;
-      mInvincibleCount -= dt;
-   }
-   else
-   {
-      mInvincibleEffect = 0.0f;
-      mInvincibleOn = false;
-   }
-}
-
 //----------------------------------------------------------------------------
 void ShapeBase::setVelocity(const VectorF&)
 {
@@ -2240,7 +2063,7 @@ void ShapeBase::stopAudio(U32 slot)
 void ShapeBase::updateServerAudio()
 {
    // Timeout non-looping sounds
-   for (int i = 0; i < MaxSoundThreads; i++) {
+   for (S32 i = 0; i < MaxSoundThreads; i++) {
       Sound& st = mSoundThread[i];
       if (st.play && st.timeout && st.timeout < Sim::getCurrentTime()) {
          clearMaskBits(SoundMaskN << i);
@@ -2257,7 +2080,7 @@ void ShapeBase::updateAudioState(Sound& st)
    {
       if ( isGhost() ) 
       {
-         if ( Sim::findObject( SimObjectId( st.profile ), st.profile ) )
+         if ( Sim::findObject( SimObjectId((uintptr_t)st.profile), st.profile ) )
          {
             st.sound = SFX->createSource( st.profile, &getTransform() );
             if ( st.sound )
@@ -2280,7 +2103,7 @@ void ShapeBase::updateAudioState(Sound& st)
 
 void ShapeBase::updateAudioPos()
 {
-   for (int i = 0; i < MaxSoundThreads; i++)
+   for (S32 i = 0; i < MaxSoundThreads; i++)
    {
       SFXSource* source = mSoundThread[i].sound;
       if ( source )
@@ -2322,14 +2145,13 @@ bool ShapeBase::setThreadSequence(U32 slot, S32 seq, bool reset)
       if (reset) {
          st.state = Thread::Play;
          st.atEnd = false;
-		 st.timescale = 1.f;
-		 st.position = 0.f;
+         st.timescale = 1.f;
+         st.position = 0.f;
       }
       if (mShapeInstance) {
          if (!st.thread)
             st.thread = mShapeInstance->addThread();
-         mShapeInstance->setSequence(st.thread,seq,0);
-         stopThreadSound(st);
+         mShapeInstance->setSequence(st.thread,seq,st.position);
          updateThread(st);
       }
       return true;
@@ -2344,19 +2166,12 @@ void ShapeBase::updateThread(Thread& st)
 		case Thread::Stop:
 			{
 				mShapeInstance->setTimeScale( st.thread, 1.f );
-				mShapeInstance->setPos( st.thread, ( st.timescale > 0.f ) ? 0.0f : 1.0f );
+				mShapeInstance->setPos( st.thread, ( st.timescale > 0.f ) ? 1.0f : 0.0f );
 			} // Drop through to pause state
 
 		case Thread::Pause:
 			{
-				if ( st.position != -1.f )
-				{
-					mShapeInstance->setTimeScale( st.thread, 1.f );
-					mShapeInstance->setPos( st.thread, st.position );
-				}
-
 				mShapeInstance->setTimeScale( st.thread, 0.f );
-				stopThreadSound( st );
 			} break;
 
 		case Thread::Play:
@@ -2366,7 +2181,6 @@ void ShapeBase::updateThread(Thread& st)
 					mShapeInstance->setTimeScale(st.thread,1);
 					mShapeInstance->setPos( st.thread, ( st.timescale > 0.f ) ? 1.0f : 0.0f );
 					mShapeInstance->setTimeScale(st.thread,0);
-					stopThreadSound(st);
                st.state = Thread::Stop;
 				}
 				else
@@ -2378,16 +2192,11 @@ void ShapeBase::updateThread(Thread& st)
 					}
 
 					mShapeInstance->setTimeScale(st.thread, st.timescale );
-					if (!st.sound)
-					{
-						startSequenceSound(st);
-					}
 				}
 			} break;
 
       case Thread::Destroy:
          {
-				stopThreadSound(st);
             st.atEnd = true;
             st.sequence = -1;
             if(st.thread)
@@ -2495,19 +2304,6 @@ bool ShapeBase::setThreadTimeScale( U32 slot, F32 timeScale )
 	return false;
 }
 
-void ShapeBase::stopThreadSound(Thread& thread)
-{
-   if (thread.sound) {
-   }
-}
-
-void ShapeBase::startSequenceSound(Thread& thread)
-{
-   if (!isGhost() || !thread.thread)
-      return;
-   stopThreadSound(thread);
-}
-
 void ShapeBase::advanceThreads(F32 dt)
 {
    for (U32 i = 0; i < MaxScriptThreads; i++) {
@@ -2519,7 +2315,7 @@ void ShapeBase::advanceThreads(F32 dt)
             st.atEnd = true;
             updateThread(st);
             if (!isGhost()) {
-               mDataBlock->onEndSequence_callback( this, i );
+               mDataBlock->onEndSequence_callback(this, i, this->getThreadSequenceName(i));
             }
          }
 
@@ -2528,6 +2324,7 @@ void ShapeBase::advanceThreads(F32 dt)
          if(st.thread)
          {
             mShapeInstance->advanceTime(dt,st.thread);
+            st.position = mShapeInstance->getPos(st.thread);
          }
       }
    }
@@ -3103,8 +2900,7 @@ U32 ShapeBase::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
    }
 
    if(!stream->writeFlag(mask & (NameMask | DamageMask | SoundMask | MeshHiddenMask |
-         ThreadMask | ImageMask | CloakMask | InvincibleMask |
-         ShieldMask | SkinMask)))
+         ThreadMask | ImageMask | CloakMask | SkinMask)))
       return retMask;
 
    if (stream->writeFlag(mask & DamageMask)) {
@@ -3114,7 +2910,7 @@ U32 ShapeBase::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
    }
 
    if (stream->writeFlag(mask & ThreadMask)) {
-      for (int i = 0; i < MaxScriptThreads; i++) {
+      for (S32 i = 0; i < MaxScriptThreads; i++) {
          Thread& st = mScriptThread[i];
          if (stream->writeFlag( (st.sequence != -1 || st.state == Thread::Destroy) && (mask & (ThreadMaskN << i)) ) ) {
             stream->writeInt(st.sequence,ThreadSequenceBits);
@@ -3127,7 +2923,7 @@ U32 ShapeBase::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
    }
 
    if (stream->writeFlag(mask & SoundMask)) {
-      for (int i = 0; i < MaxSoundThreads; i++) {
+      for (S32 i = 0; i < MaxSoundThreads; i++) {
          Sound& st = mSoundThread[i];
          if (stream->writeFlag(mask & (SoundMaskN << i)))
             if (stream->writeFlag(st.play))
@@ -3137,7 +2933,7 @@ U32 ShapeBase::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
    }
 
    if (stream->writeFlag(mask & ImageMask)) {
-      for (int i = 0; i < MaxMountedImages; i++)
+      for (S32 i = 0; i < MaxMountedImages; i++)
          if (stream->writeFlag(mask & (ImageMaskN << i))) {
             MountedImage& image = mMountedImageList[i];
             if (stream->writeFlag(image.dataBlock))
@@ -3159,9 +2955,9 @@ U32 ShapeBase::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
             stream->writeFlag(image.triggerDown);
             stream->writeFlag(image.altTriggerDown);
 
-            for (U32 i=0; i<ShapeBaseImageData::MaxGenericTriggers; ++i)
+            for (U32 j=0; j<ShapeBaseImageData::MaxGenericTriggers; ++j)
             {
-               stream->writeFlag(image.genericTrigger[i]);
+               stream->writeFlag(image.genericTrigger[j]);
             }
 
             stream->writeInt(image.fireCount,3);            
@@ -3174,7 +2970,7 @@ U32 ShapeBase::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
    }
 
    // Group some of the uncommon stuff together.
-   if (stream->writeFlag(mask & (NameMask | ShieldMask | CloakMask | InvincibleMask | SkinMask | MeshHiddenMask ))) {
+   if (stream->writeFlag(mask & (NameMask | CloakMask | SkinMask | MeshHiddenMask ))) {
          
       if (stream->writeFlag(mask & CloakMask))
       {
@@ -3194,14 +2990,6 @@ U32 ShapeBase::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
       }
       if (stream->writeFlag(mask & NameMask)) {
          con->packNetStringHandleU(stream, mShapeNameHandle);
-      }
-      if (stream->writeFlag(mask & ShieldMask)) {
-         stream->writeNormalVector(mShieldNormal, ShieldNormalBits);
-         stream->writeFloat( getEnergyValue(), EnergyLevelBits );
-      }
-      if (stream->writeFlag(mask & InvincibleMask)) {
-         stream->write(mInvincibleTime);
-         stream->write(mInvincibleSpeed);
       }
 
       if ( stream->writeFlag( mask & MeshHiddenMask ) )
@@ -3238,9 +3026,9 @@ void ShapeBase::unpackUpdate(NetConnection *con, BitStream *stream)
          if (stream->readFlag()) {
             Thread& st = mScriptThread[i];
             U32 seq = stream->readInt(ThreadSequenceBits);
-            st.state = stream->readInt(2);
-			stream->read( &st.timescale );
-			stream->read( &st.position );
+            st.state = Thread::State(stream->readInt(2));
+            stream->read( &st.timescale );
+            stream->read( &st.position );
             st.atEnd = stream->readFlag();
             if (st.sequence != seq && st.state != Thread::Destroy)
                setThreadSequence(i,seq,false);
@@ -3272,7 +3060,7 @@ void ShapeBase::unpackUpdate(NetConnection *con, BitStream *stream)
 
    // Mounted Images
    if (stream->readFlag()) {
-      for (int i = 0; i < MaxMountedImages; i++) {
+      for (S32 i = 0; i < MaxMountedImages; i++) {
          if (stream->readFlag()) {
             MountedImage& image = mMountedImageList[i];
             ShapeBaseImageData* imageData = 0;
@@ -3304,14 +3092,14 @@ void ShapeBase::unpackUpdate(NetConnection *con, BitStream *stream)
             image.triggerDown = stream->readFlag();
             image.altTriggerDown = stream->readFlag();
 
-            for (U32 i=0; i<ShapeBaseImageData::MaxGenericTriggers; ++i)
+            for (U32 j=0; j<ShapeBaseImageData::MaxGenericTriggers; ++j)
             {
-               image.genericTrigger[i] = stream->readFlag();
+               image.genericTrigger[j] = stream->readFlag();
             }
 
-            int count = stream->readInt(3);
-            int altCount = stream->readInt(3);
-            int reloadCount = stream->readInt(3);
+            S32 count = stream->readInt(3);
+            S32 altCount = stream->readInt(3);
+            S32 reloadCount = stream->readInt(3);
 
             bool datablockChange = image.dataBlock != imageData;
             if (datablockChange || (image.skinNameHandle != skinDesiredNameHandle))
@@ -3364,40 +3152,9 @@ void ShapeBase::unpackUpdate(NetConnection *con, BitStream *stream)
                {
                   if ( imageData->lightType == ShapeBaseImageData::WeaponFireLight )                     
                      image.lightStart = Sim::getCurrentTime();                     
-                  
-                  // HACK: Only works properly if you are in control
-                  // of the one and only shapeBase object in the scene
-                  // which fires an image that uses camera shake.
-                  if ( imageData->shakeCamera )
-                  {
-                     if ( !mWeaponCamShake )
-                     {
-                        mWeaponCamShake = new CameraShake();
-                        mWeaponCamShake->remoteControlled = true;
-                     }
-
-                     mWeaponCamShake->init();
-                     mWeaponCamShake->setFrequency( imageData->camShakeFreq );
-                     mWeaponCamShake->setAmplitude( imageData->camShakeAmp );  
-                     
-                     if ( !mWeaponCamShake->isAdded )
-                     {
-                        gCamFXMgr.addFX( mWeaponCamShake );
-                        mWeaponCamShake->isAdded = true;
-                     }
-                  }
                }
                
                updateImageState(i,0);
-
-               if ( !image.triggerDown && !image.altTriggerDown )
-               {
-                  if ( mWeaponCamShake && mWeaponCamShake->isAdded )
-                  {
-                     gCamFXMgr.removeFX( mWeaponCamShake );
-                     mWeaponCamShake->isAdded = false;
-                  }
-               }
             }
             else
             {               
@@ -3443,25 +3200,6 @@ void ShapeBase::unpackUpdate(NetConnection *con, BitStream *stream)
       }
       if (stream->readFlag())  { // NameMask
          mShapeNameHandle = con->unpackNetStringHandleU(stream);
-      }
-      if(stream->readFlag())     // ShieldMask
-      {
-         // Cloaking, Shield, and invul masking
-         Point3F shieldNormal;
-         stream->readNormalVector(&shieldNormal, ShieldNormalBits);
-         
-         // CodeReview [bjg 4/6/07] This is our energy level - why aren't we storing it? Was in a
-         // local variable called energyPercent.
-         stream->readFloat(EnergyLevelBits);
-      }
-
-      if (stream->readFlag()) 
-      {
-         // InvincibleMask
-         F32 time, speed;
-         stream->read(&time);
-         stream->read(&speed);
-         setupInvincibleEffect(time, speed);
       }
       
       if ( stream->readFlag() ) // MeshHiddenMask
@@ -3743,7 +3481,7 @@ void ShapeBase::reSkin()
       Vector<String> skins;
       String(mSkinNameHandle.getString()).split( ";", skins );
 
-      for (int i = 0; i < skins.size(); i++)
+      for (S32 i = 0; i < skins.size(); i++)
       {
          String oldSkin( mAppliedSkinName.c_str() );
          String newSkin( skins[i] );
@@ -4825,18 +4563,6 @@ DefineEngineMethod( ShapeBase, setCameraFov, void, ( F32 fov ),,
 {
    if (object->isServerObject())
       object->setCameraFov( fov );
-}
-
-DefineEngineMethod( ShapeBase, setInvincibleMode, void, ( F32 time, F32 speed ),,
-   "@brief Setup the invincible effect.\n\n"
-
-   "This effect is used for HUD feedback to the user that they are invincible.\n"
-   "@note Currently not implemented\n"
-
-   "@param time duration in seconds for the invincible effect\n"
-   "@param speed speed at which the invincible effect progresses\n" )
-{
-   object->setupInvincibleEffect( time, speed );
 }
 
 DefineEngineMethod( ShapeBase, startFade, void, ( S32 time, S32 delay, bool fadeOut ),,

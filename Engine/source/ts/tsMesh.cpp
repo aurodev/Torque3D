@@ -165,6 +165,9 @@ void TSMesh::innerRender( TSMaterialList *materials, const TSRenderState &rdata,
    MeshRenderInst *coreRI = renderPass->allocInst<MeshRenderInst>();
    coreRI->type = RenderPassManager::RIT_Mesh;
 
+   // Pass accumulation texture along.
+   coreRI->accuTex = rdata.getAccuTex();
+
    const MatrixF &objToWorld = GFX->getWorldMatrix();
 
    // Sort by the center point or the bounds.
@@ -203,7 +206,7 @@ void TSMesh::innerRender( TSMaterialList *materials, const TSRenderState &rdata,
 
    coreRI->vertBuff = &vb;
    coreRI->primBuff = &pb;
-   coreRI->defaultKey2 = (U32) coreRI->vertBuff;
+   coreRI->defaultKey2 = (uintptr_t) coreRI->vertBuff;
 
    coreRI->materialHint = rdata.getMaterialHint();
 
@@ -785,7 +788,7 @@ bool TSMesh::castRayRendered( S32 frame, const Point3F & start, const Point3F & 
       // gonna depend on what kind of primitive it is...
       if ( (draw.matIndex & TSDrawPrimitive::TypeMask) == TSDrawPrimitive::Triangles )
       {
-         for ( S32 j = 0; j < draw.numElements-2; j++)
+         for ( S32 j = 0; j < draw.numElements-2; j += 3 )
          {
             idx0 = indices[drawStart + j + 0];
             idx1 = indices[drawStart + j + 1];
@@ -1204,7 +1207,7 @@ void TSSkinMesh::updateSkin( const Vector<MatrixF> &transforms, TSVertexBufferHa
 
    // set up bone transforms
    PROFILE_START(TSSkinMesh_UpdateTransforms);
-   for( int i=0; i<batchData.nodeIndex.size(); i++ )
+   for( S32 i=0; i<batchData.nodeIndex.size(); i++ )
    {
       S32 node = batchData.nodeIndex[i];
       sBoneTransforms[i].mul( transforms[node], batchData.initialTransforms[i] );
@@ -1234,7 +1237,7 @@ void TSSkinMesh::updateSkin( const Vector<MatrixF> &transforms, TSVertexBufferHa
          skinnedVert.zero();
          skinnedNorm.zero();
 
-         for( int tOp = 0; tOp < curVert.transformCount; tOp++ )
+         for( S32 tOp = 0; tOp < curVert.transformCount; tOp++ )
          {      
             const BatchData::TransformOp &transformOp = curVert.transform[tOp];
 
@@ -1419,7 +1422,7 @@ void TSSkinMesh::createBatchData()
       itr != batchOperations.end(); itr++ )
    {
       const BatchData::BatchedVertex &curTransform = *itr;
-      for( int i = 0; i < curTransform.transformCount; i++ )
+      for( S32 i = 0; i < curTransform.transformCount; i++ )
       {
          const BatchData::TransformOp &transformOp = curTransform.transform[i];
 
@@ -1444,8 +1447,8 @@ void TSSkinMesh::createBatchData()
 
    // Now iterate the resulting operations and convert the vectors to aligned
    // memory locations
-   const int numBatchOps = batchData.transformKeys.size();
-   for(int i = 0; i < numBatchOps; i++)
+   const S32 numBatchOps = batchData.transformKeys.size();
+   for(S32 i = 0; i < numBatchOps; i++)
    {
       BatchData::BatchedTransform &curTransform = *batchData.transformBatchOperations.retreive(batchData.transformKeys[i]);
       const S32 numVerts = curTransform._tmpVec->size();
@@ -1463,7 +1466,7 @@ void TSSkinMesh::createBatchData()
    }
 
    // Now sort the batch data so that the skin function writes close to linear output
-   for(int i = 0; i < numBatchOps; i++)
+   for(S32 i = 0; i < numBatchOps; i++)
    {
       BatchData::BatchedTransform &curTransform = *batchData.transformBatchOperations.retreive(batchData.transformKeys[i]);
       dQsort(curTransform.alignedMem, curTransform.numElements, sizeof(BatchData::BatchedVertWeight), _sort_BatchedVertWeight);
@@ -2429,7 +2432,7 @@ void TSMesh::_createVBIB( TSVertexBufferHandle &vb, GFXPrimitiveBufferHandle &pb
             pInfo.startIndex = draw.start;
             // Use the first index to determine which 16-bit address space we are operating in
             pInfo.startVertex = indices[draw.start] & 0xFFFF0000;
-            pInfo.minIndex = pInfo.startVertex;
+            pInfo.minIndex = 0; // minIndex are zero based index relative to startVertex. See @GFXDevice
             pInfo.numVertices = getMin((U32)0x10000, mNumVerts - pInfo.startVertex);
             break;
 
@@ -2440,7 +2443,7 @@ void TSMesh::_createVBIB( TSVertexBufferHandle &vb, GFXPrimitiveBufferHandle &pb
             pInfo.startIndex = draw.start;
             // Use the first index to determine which 16-bit address space we are operating in
             pInfo.startVertex = indices[draw.start] & 0xFFFF0000;
-            pInfo.minIndex = pInfo.startVertex;
+            pInfo.minIndex = 0; // minIndex are zero based index relative to startVertex. See @GFXDevice
             pInfo.numVertices = getMin((U32)0x10000, mNumVerts - pInfo.startVertex);
             break;
 
@@ -2559,7 +2562,7 @@ void TSMesh::assemble( bool skip )
       // need to copy to temporary arrays
       deleteInputArrays = true;
       primIn = new TSDrawPrimitive[szPrimIn];
-      for (int i = 0; i < szPrimIn; i++)
+      for (S32 i = 0; i < szPrimIn; i++)
       {
          primIn[i].start = prim16[i*2];
          primIn[i].numElements = prim16[i*2+1];
@@ -2950,7 +2953,11 @@ inline void TSMesh::findTangent( U32 index1,
 void TSMesh::createTangents(const Vector<Point3F> &_verts, const Vector<Point3F> &_norms)
 {
    U32 numVerts = _verts.size();
-   if ( numVerts == 0 )
+   U32 numNorms = _norms.size();
+   if ( numVerts <= 0 || numNorms <= 0 )
+      return;
+
+   if( numVerts != numNorms)
       return;
 
    Vector<Point3F> tan0;

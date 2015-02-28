@@ -34,7 +34,8 @@ TSRenderState::TSRenderState()
       mCuller( NULL ),
       mLightQuery( NULL ),
       mUseOriginSort( false ),
-	  mMaterialDamage(1.0f)
+      mMaterialDamage(1.0f),
+      mAccuTex( NULL )
 {
 }
 
