@@ -100,7 +100,7 @@ void GFXD3D9Cubemap::initStatic( GFXTexHandle *faces )
       // NOTE - check tex sizes on all faces - they MUST be all same size
       mTexSize = faces[0].getWidth();
       mFaceFormat = faces[0].getFormat();
-
+      
       U32 levels = faces->getPointer()->getMipLevels();
       if (levels >1)
       { 

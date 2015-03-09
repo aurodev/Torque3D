@@ -754,6 +754,7 @@ function MaterialEditorGui::guiSync( %this, %material )
    MaterialEditorPropertiesWindow-->transZWriteCheckBox.setValue((%material).translucentZWrite);
    MaterialEditorPropertiesWindow-->alphaTestCheckBox.setValue((%material).alphaTest);
    MaterialEditorPropertiesWindow-->castShadows.setValue((%material).castShadows);
+   MaterialEditorPropertiesWindow-->castDynamicShadows.setValue((%material).castDynamicShadows);
    MaterialEditorPropertiesWindow-->translucentCheckbox.setValue((%material).translucent);
    
    switch$((%material).translucentBlendOp)
@@ -873,6 +874,17 @@ function MaterialEditorGui::guiSync( %this, %material )
    {
       MaterialEditorPropertiesWindow-->toneMapNameText.setText( (%material).toneMap[%layer] );
       MaterialEditorPropertiesWindow-->toneMapDisplayBitmap.setBitmap( (%material).toneMap[%layer] );
+   }
+   
+   if((%material).translucencyMap[%layer] $= "") 
+   {
+      MaterialEditorPropertiesWindow-->translucencyMapNameText.setText( "None" );
+      MaterialEditorPropertiesWindow-->translucencyMapDisplayBitmap.setBitmap( "tools/materialeditor/gui/unknownImage" );
+   }
+   else
+   {
+      MaterialEditorPropertiesWindow-->translucencyMapNameText.setText( (%material).translucencyMap[%layer] );
+      MaterialEditorPropertiesWindow-->translucencyMapDisplayBitmap.setBitmap( (%material).translucencyMap[%layer] );
    }
    
    if((%material).specularMap[%layer] $= "") 

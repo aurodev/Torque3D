@@ -1334,7 +1334,7 @@ void GuiShapeEdPreview::renderWorld(const RectI &updateRect)
 
    FogData savedFogData = gClientSceneGraph->getFogData();
    gClientSceneGraph->setFogData( FogData() );  // no fog in preview window
-
+   
    SceneRenderState state
    (
       gClientSceneGraph,

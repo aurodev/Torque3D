@@ -236,12 +236,19 @@ public:
 /// Base texture
 class DiffuseMapFeatGLSL : public ShaderFeatureGLSL
 {
+
+protected:
+
+	ShaderIncludeDependency mTorqueDep;
 public:
+	DiffuseMapFeatGLSL();
    virtual void processVert( Vector<ShaderComponent*> &componentList,
                              const MaterialFeatureData &fd );
 
    virtual void processPix( Vector<ShaderComponent*> &componentList, 
                             const MaterialFeatureData &fd );
+
+   virtual U32 getOutputTargets(const MaterialFeatureData &fd) const;
 
    virtual Material::BlendOp getBlendOp(){ return Material::LerpAlpha; }
 
@@ -295,6 +302,8 @@ public:
                               const MaterialFeatureData &fd );
 
    virtual Material::BlendOp getBlendOp(){ return Material::None; }
+
+   virtual U32 getOutputTargets(const MaterialFeatureData &fd) const;
 
    virtual String getName()
    {
@@ -650,5 +659,11 @@ public:
 											MaterialFeatureData *outFeatureData );
 };
 
-
+class DeferredSkyGLSL : public ShaderFeatureGLSL
+{
+public:
+   virtual String getName() { return "Deferred Shading: Sky"; }
+   virtual void processVert( Vector<ShaderComponent*> &componentList,
+                             const MaterialFeatureData &fd );
+};
 #endif // _SHADERGEN_GLSL_SHADERFEATUREGLSL_H_
